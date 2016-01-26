@@ -73,8 +73,10 @@ protected:
 	UFUNCTION()
 	virtual void ProjectileFire(); //only called when using Artillery class
 
-	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+	UPROPERTY(EditDefaultsOnly, Category = Projectile, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AProjectile> ProjectileClass;
+
+
 	/***********End of Artillery***********/
 
 	/*Bullet, Spread, or Projectile*/

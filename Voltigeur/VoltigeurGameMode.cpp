@@ -2,12 +2,12 @@
 
 #include "Voltigeur.h"
 #include "VoltigeurGameMode.h"
+#include "ControllerPawn.h"
 #include "VoltigeurPlayerController.h"
-// #include "VoltigeurCharacter.h"
 
 AVoltigeurGameMode::AVoltigeurGameMode()
 {
 	// use our custom PlayerController class
 	PlayerControllerClass = AVoltigeurPlayerController::StaticClass();
-
+	DefaultPawnClass = AControllerPawn::StaticClass();
 }

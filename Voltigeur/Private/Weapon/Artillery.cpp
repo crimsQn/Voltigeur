@@ -2,7 +2,8 @@
 
 #include "Voltigeur.h"
 #include "Artillery.h"
-
+#include "Engine.h"
+#include "Projectile.h"
 
 
 void AArtillery::ProjectileFire()
@@ -20,7 +21,7 @@ void AArtillery::ProjectileFire()
 		AProjectile const* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MFLoc, MFRot, SpawnParams);
 		if (Projectile)
 		{
-
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Projectile Spawned"));
 		}
 	}
 

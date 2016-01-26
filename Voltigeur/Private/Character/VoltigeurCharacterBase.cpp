@@ -13,6 +13,7 @@ AVoltigeurCharacterBase::AVoltigeurCharacterBase()
 	SetDefaultSettings();
 	SetCharacterSettings();
 	SetCollisionSettings();
+	
 }
 
 void AVoltigeurCharacterBase::SetDefaultSettings()
@@ -39,11 +40,11 @@ void AVoltigeurCharacterBase::SetDefaultSettings()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->AttachTo(RootComponent);
 	CameraBoom->bAbsoluteRotation = true; // Don't want arm to rotate when character does
-	CameraBoom->TargetArmLength = 800.f;
-	CameraBoom->RelativeRotation = FRotator(-60.f, 0.f, 0.f);
+	CameraBoom->TargetArmLength = DEFAULT_ARM_LENGTH;
+	CameraBoom->RelativeRotation = DEFAULT_CAMERA_ROT;
 	CameraBoom->bDoCollisionTest = false; // Don't want to pull camera in when it collides with level
 
-	// Create a camera...
+										  // Create a camera...
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->AttachTo(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
@@ -116,6 +117,11 @@ void AVoltigeurCharacterBase::SetupPlayerInputComponent(class UInputComponent* I
 	InputComponent->BindAction("Pistol", IE_Pressed, this, &AVoltigeurCharacterBase::EquipPistol);
 	InputComponent->BindAction("Rifle", IE_Pressed, this, &AVoltigeurCharacterBase::EquipRifle);
 	InputComponent->BindAction("Artillery", IE_Pressed, this, &AVoltigeurCharacterBase::EquipArtillery);
+
+ 	/**Camera Settings**/
+	InputComponent->BindAction("ZoomIn", IE_Pressed, this, &AVoltigeurCharacterBase::ZoomIn);
+	InputComponent->BindAction("ZoomOut", IE_Pressed, this, &AVoltigeurCharacterBase::ZoomOut);
+	InputComponent->BindAction("ChangeView", IE_Pressed, this, &AVoltigeurCharacterBase::ChangeView);
 }
 
 void AVoltigeurCharacterBase::SetTarget(ACharacter* const Enemy)
@@ -330,4 +336,40 @@ void AVoltigeurCharacterBase::EquipArtillery()
 			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Current Weapon " + CurrentWeapon->WeaponConfig.Name);
 		}
 	}
+}
+
+void AVoltigeurCharacterBase::ZoomIn()
+{
+	const float ADJ_MAGN = CameraBoom->TargetArmLength + ZOOM_INCREMENT;
+	if (ADJ_MAGN < MAX_BOOM_LENGTH)
+	{
+		CameraBoom->TargetArmLength = ADJ_MAGN;
+	}
+	else
+	{
+		CameraBoom->TargetArmLength = MAX_BOOM_LENGTH;
+	}
+}
+
+void AVoltigeurCharacterBase::ZoomOut()
+{
+	const float ADJ_MAGN = CameraBoom->TargetArmLength - ZOOM_INCREMENT;
+	if (ADJ_MAGN > MIN_BOOM_LENGTH)
+	{
+		CameraBoom->TargetArmLength = ADJ_MAGN;
+	}
+	else
+	{
+		CameraBoom->TargetArmLength = MIN_BOOM_LENGTH;
+	}
+}
+
+void AVoltigeurCharacterBase::ChangeView()
+{
+
+}
+
+void AVoltigeurCharacterBase::Aim()
+{
+
 }

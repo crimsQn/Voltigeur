@@ -2,6 +2,7 @@
 
 #include "Voltigeur.h"
 #include "VoltigeurPlayerController.h"
+#include "VoltigeurGameMode.h"
 #include "AI/Navigation/NavigationSystem.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Engine.h"
@@ -12,7 +13,8 @@ AVoltigeurPlayerController::AVoltigeurPlayerController()
 	//Default Settings
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::CardinalCross;
-	//End of Default Settings
+	//End of Default Settinsg
+
 }
 
 void AVoltigeurPlayerController::PlayerTick(float DeltaTime) //every frame stuff
@@ -32,16 +34,17 @@ void AVoltigeurPlayerController::SetupInputComponent()
 	InputComponent->BindAction("MoveOrInteract", IE_Released, this, &AVoltigeurPlayerController::CheckUnderMouse);
 
 	//Double-Click to interact
+	//implement deselect
 
 	//Scroll between WeaponInventory
-	InputComponent->BindAction("CycleWeaponInventory", IE_Pressed, this, &AVoltigeurPlayerController::CycleWeaponInventory);
+//	InputComponent->BindAction("CycleWeaponInventory", IE_Pressed, this, &AVoltigeurPlayerController::CycleWeaponInventory);
+
 }
 
 //Step 1 of "Select"
 void AVoltigeurPlayerController::CheckUnderMouse()
 {
 	FHitResult Hit; //is whatever was under the mouse cursor right now
-					//TODO Create trace type, instead of converting?
 	GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Pawn), false, Hit);
 
 	//Hit is an character 
@@ -51,6 +54,7 @@ void AVoltigeurPlayerController::CheckUnderMouse()
 		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Selecting a Character"));
 		AVoltigeurPlayerController::ProcessSelectedCharacter(Hit);
 	}
+	// else process movement
 	else if (Hit.bBlockingHit)
 	{
 		AVoltigeurPlayerController::GoToLocation(Hit);
@@ -60,6 +64,14 @@ void AVoltigeurPlayerController::CheckUnderMouse()
 //Step 2 of "Select"
 void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 {
+	//Check if Pawn is a default spanning pawn or if player is currently controlling a character
+	if (GetPawn() && GetPawn()->IsA(AControllerPawn::StaticClass()))
+	{
+		//Process Selection in a different function for code to be legible
+		AVoltigeurPlayerController::ProcessSelectionPawn(Hit);
+		return;
+	}
+
 	//TODO change cast to generic base character
 	AVoltigeurCharacterBase* SelectedVoltigeur = Cast<AVoltigeurCharacterBase>(Hit.GetActor());
 	AVoltigeurCharacterBase* PlayerVoltigeur = Cast<AVoltigeurCharacterBase>(GetPawn());
@@ -69,8 +81,17 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 	{
 		EFriendlyState SelectedCharFriendlyState = SelectedVoltigeur->GetFriendlyState();
 
+		if (SelectedCharFriendlyState == EFriendlyState::EPlayer)
+		{
+			//TODO need to reset animation before Un-possessing the character
+			//Un-possess current pawn
+			AVoltigeurPlayerController::UnPossess();
+			//Switch control to this character
+			this->Possess(SelectedVoltigeur);
+			//TODO reset camera??
+		}
 		//Check if unit under cursor is hostile
-		if (SelectedCharFriendlyState == EFriendlyState::EHostile)
+		else if (SelectedCharFriendlyState == EFriendlyState::EHostile)
 		{
 			//Check if player character's target is valid
 			if (PlayerVoltigeur->GetTarget() != SelectedVoltigeur)
@@ -85,6 +106,8 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 			}
 			else //Valid target, then attack
 			{
+				//Check if Character is facing enemy
+				AVoltigeurPlayerController::FaceSelected(SelectedVoltigeur->GetActorLocation(), 0.f);
 				//Check if weapon is equipped
 				if (PlayerVoltigeur->GetCurrentWeapon() != NULL)
 				{
@@ -97,15 +120,6 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 				}
 			}
 		}
-		else if (SelectedCharFriendlyState == EFriendlyState::EPlayer)
-		{
-			//TODO need to reset animation before Un-possessing the character
-			//Un-possess current pawn
-			AVoltigeurPlayerController::UnPossess();
-			//Switch control to this character
-			this->Possess(SelectedVoltigeur);
-			//TODO reset camera??
-		}
 		else //Neutral or friendly units
 		{
 			//Make sure player's target is null
@@ -114,7 +128,7 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, TEXT("Un-Targetting"));
 			//Rotate controlled pawn to enemy target
 			//TODO change DeltaTime for animation
-			AVoltigeurPlayerController::FaceSelected(SelectedVoltigeur->GetActorLocation(), 1.f);
+			AVoltigeurPlayerController::FaceSelected(SelectedVoltigeur->GetActorLocation(), 0.f);
 		}
 		//else select that character if out of range, interact or move to actor if in range
 
@@ -123,32 +137,43 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 
 }
 
-//Rotates Pawn so it faces target's location
-void AVoltigeurPlayerController::FaceSelected(FVector targetloc, float DeltaTime)
+void AVoltigeurPlayerController::ProcessSelectionPawn(FHitResult Hit)
 {
-	//Check for valid pawn
-	if (GetPawn() == nullptr)
-	{
-		return;
-	}
-	//Check if Target Location is same has current except Z-value
-	FVector ActorLoc = GetPawn()->GetActorLocation();
-	if (ActorLoc.X == targetloc.X && ActorLoc.Y == targetloc.Y)
-	{
-		return;
-	}
-	else
-	{
-		FVector Direction = targetloc - ActorLoc;
-		FRotator NewRotation = Direction.Rotation();
-		//Rotation to face target is only affected by yaw
-		NewRotation.Yaw = FRotator::ClampAxis(NewRotation.Yaw);
+	AVoltigeurCharacterBase* SelectedVoltigeur = Cast<AVoltigeurCharacterBase>(Hit.GetActor());
 
-		//Update mesh
-		GetPawn()->FaceRotation(NewRotation, DeltaTime);
+	//if Selected Character is a Friendly, then possess it
+	if (SelectedVoltigeur && SelectedVoltigeur->GetFriendlyState() == EFriendlyState::EPlayer)
+	{
+		//save this controller pawn in a pointer
+		ControllerPawnPtr = Cast<AControllerPawn>(this->GetPawn());
+		this->UnPossess();
+		this->Possess(SelectedVoltigeur);
 	}
+
+	//TODO else show Character Detail HUD
 }
 
+/*
+//Step 2 of "Select"
+void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
+{
+	//TODO change cast to generic base character
+	AVoltigeurCharacterBase* SelectedVoltigeur = Cast<AVoltigeurCharacterBase>(Hit.GetActor());
+
+	//if Hit is a Voltigeur unit
+	if (SelectedVoltigeur && SelectedVoltigeur->GetFriendlyState() == EFriendlyState::EPlayer)
+	{
+		//TODO need to reset animation before Un-possessing the character
+		//Un-possess current pawn
+		AVoltigeurPlayerController::UnPossess();
+		//Switch control to this character
+		this->Possess(SelectedVoltigeur);
+		//Switch PlayerController to CharacterController
+		AVoltigeurPlayerController CharacterController = AVoltigeurPlayerController::StaticClass();
+		//TODO reset camera??
+	}
+}
+*/
 
 void AVoltigeurPlayerController::GoToLocation(FHitResult Hit)
 {
@@ -170,11 +195,15 @@ void AVoltigeurPlayerController::GoToLocation(FHitResult Hit)
 	}
 }
 
-void AVoltigeurPlayerController::CycleWeaponInventory()
+//Rotates Pawn so it faces target's location
+void AVoltigeurPlayerController::FaceSelected(FVector TargetLoc, float DeltaTime)
 {
-	APawn* const Pawn = GetPawn();
-	if (Pawn)
+	//TODO DELETE
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("In face direction"));
+	//Check if Target Location is same has current except Z-value
+	FVector ActorLoc = GetPawn()->GetActorLocation();
+	if (ActorLoc != TargetLoc)
 	{
-		
+		GetPawn()->SetActorRotation(UKismetMathLibrary::FindLookAtRotation(ActorLoc, TargetLoc));
 	}
 }

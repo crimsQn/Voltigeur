@@ -116,6 +116,7 @@ protected:
 	//Variables
 	class AWeapon* CurrentWeapon; //initiated to NULL which means bare-hands 
 
+	void Aim();
 	/***************END Weapons*******************/
 
 	/***************Character*********************/
@@ -156,4 +157,15 @@ protected:
 	void EquipPistol();
 	void EquipRifle();
 	void EquipArtillery();
+
+private:
+	/*Camera Settings*/
+	void ZoomIn();
+	void ZoomOut();
+	const float ZOOM_INCREMENT = 50.f;
+	const float MAX_BOOM_LENGTH = 1000.f;
+	const float MIN_BOOM_LENGTH = 100.f;
+	const float DEFAULT_ARM_LENGTH = 900.f;
+	const FRotator DEFAULT_CAMERA_ROT = FRotator(-50.f, 0.f, 0.f);
+	void ChangeView();
 };

@@ -13,7 +13,7 @@ class VOLTIGEUR_API AArtillery : public AWeapon
 {
 	GENERATED_BODY()
 
-
+public:
 	virtual void ProjectileFire() override;
 	
 };
