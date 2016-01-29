@@ -35,6 +35,7 @@ protected:
 
 	/*When player is controlling a default pawn*/
 	void ProcessSelectionPawn(FHitResult Hit);
+	void DeselectToDefaultPawn(); //when player deselects a character, switch to default pawn to navigate through level
 
 	/*Pointer to Controller Pawn*/
 	class AVoltigeurDefaultPawn* ControllerPawnPtr;

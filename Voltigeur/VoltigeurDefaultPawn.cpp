@@ -7,6 +7,18 @@ AVoltigeurDefaultPawn::AVoltigeurDefaultPawn()
 {
 	AVoltigeurDefaultPawn::SetupCameraSettings();
 	//TODO need to make sure collision is off to Characters
+
+	//CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
+	//TODO no collision
+	//CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//RootComponent = CollisionComp;
+
+	//MovementComp = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComp"));
+	//MovementComp->UpdatedComponent = CollisionComp; //move with collision comp
+	//MovementComp->SetPlaneConstraintEnabled(true); //constraint to plane
+	//MovementComp->MaxSpeed = 1800.f;
+
+
 }
 
 // Called when the game starts or when spawned
@@ -42,7 +54,7 @@ void AVoltigeurDefaultPawn::SetupCameraSettings()
 
 }
 
-void AVoltigeurDefaultPawn::ZoomIn()
+void AVoltigeurDefaultPawn::ZoomOut()
 {
 	const float ADJ_MAGN = CameraBoom->TargetArmLength + ZOOM_INCREMENT;
 	if (ADJ_MAGN < MAX_BOOM_LENGTH)
@@ -55,7 +67,7 @@ void AVoltigeurDefaultPawn::ZoomIn()
 	}
 }
 
-void AVoltigeurDefaultPawn::ZoomOut()
+void AVoltigeurDefaultPawn::ZoomIn()
 {
 	const float ADJ_MAGN = CameraBoom->TargetArmLength - ZOOM_INCREMENT;
 	if (ADJ_MAGN > MIN_BOOM_LENGTH)

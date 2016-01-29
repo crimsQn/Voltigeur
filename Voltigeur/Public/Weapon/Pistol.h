@@ -14,6 +14,8 @@ class VOLTIGEUR_API APistol : public ARangedWeapon
 	GENERATED_BODY()
 	
 public:
+	APistol();
+
 	virtual void ProjectileFire() override;
 	
 	

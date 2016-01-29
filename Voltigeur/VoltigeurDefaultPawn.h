@@ -48,5 +48,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	FRotator DEFAULT_CAMERA_ROT = FRotator(-70.f, 0.f, 0.f);
 	
-	
+
+	/************************************************************************/
+	/* Collision & Movement                                                 */
+	/************************************************************************/
+	class USphereComponent* CollisionComp;
+	class UFloatingPawnMovement* MovementComp;
 };

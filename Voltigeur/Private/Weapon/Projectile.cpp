@@ -13,15 +13,13 @@ AProjectile::AProjectile()
 {
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionComp"));
 	CollisionComp->InitSphereRadius(5.0f);
-	//	ColisionComp->BodyInstance.SetCollisionProfileName("Projectile"); 	
-	//	CollisionComp->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
 	CollisionComp->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnCollision);
 	RootComponent = CollisionComp;
 
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComp; //moving along with collision component
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
+	ProjectileMovement->InitialSpeed = 1200.f;
+	ProjectileMovement->MaxSpeed = 1700.f;
 	ProjectileMovement->bRotationFollowsVelocity = false; //rotation with velocity
 	ProjectileMovement->bShouldBounce = false; //.bounce
 

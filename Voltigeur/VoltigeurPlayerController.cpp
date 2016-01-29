@@ -14,7 +14,7 @@ AVoltigeurPlayerController::AVoltigeurPlayerController()
 {
 	//Default Settings
 	bShowMouseCursor = true;
-	DefaultMouseCursor = EMouseCursor::CardinalCross;
+	DefaultMouseCursor = EMouseCursor::Crosshairs;
 	//End of Default Settinsg
 
 }
@@ -33,10 +33,11 @@ void AVoltigeurPlayerController::SetupInputComponent()
 
 	//LMB which moves pawn or selects objects
 	//When LMB is released, 'order' is executed every frame in PlayerTick
-	InputComponent->BindAction("MoveOrInteract", IE_Released, this, &AVoltigeurPlayerController::CheckUnderMouse);
+	InputComponent->BindAction("MoveOrInteract", IE_Pressed, this, &AVoltigeurPlayerController::CheckUnderMouse);
 
 	//Double-Click to interact
 	//implement deselect
+	InputComponent->BindAction("Deselect", IE_Pressed, this, &AVoltigeurPlayerController::DeselectToDefaultPawn);
 
 	//Scroll between WeaponInventory
 	//	InputComponent->BindAction("CycleWeaponInventory", IE_Pressed, this, &AVoltigeurPlayerController::CycleWeaponInventory);
@@ -53,7 +54,7 @@ void AVoltigeurPlayerController::CheckUnderMouse()
 	if (Hit.GetActor() && Hit.GetActor()->IsA(ACharacter::StaticClass()))
 	{
 		//TODO delete
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, TEXT("Selecting a Character"));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Selecting a Character"));
 		AVoltigeurPlayerController::ProcessSelectedCharacter(Hit);
 	}
 	// else process movement
@@ -66,11 +67,13 @@ void AVoltigeurPlayerController::CheckUnderMouse()
 //Step 2 of "Select"
 void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 {
-	//Check if Pawn is a default spanning pawn or if player is currently controlling a character
+	//Check if Pawn is a default spanning pawn
 	if (GetPawn() && GetPawn()->IsA(AVoltigeurDefaultPawn::StaticClass()))
 	{
-		//Process Selection in a different function for code to be legible
-		AVoltigeurPlayerController::ProcessSelectionPawn(Hit);
+		//TODO DELETE it's a bit buggy
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Default Pawn Selecting a Character"));
+		//Selection is processed in a dedicated function for controlling a default pawn
+		ProcessSelectionPawn(Hit);
 		return;
 	}
 
@@ -78,6 +81,7 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 	ABaseCharacter* SelectedChar = Cast<ABaseCharacter>(Hit.GetActor());
 	ABaseCharacter* PlayerChar = Cast<ABaseCharacter>(GetPawn());
 
+	//if valid pawn and selection
 	if (SelectedChar && PlayerChar)
 	{
 		EFriendlyState SelectedCharFriendlyState = SelectedChar->GetFriendlyState();
@@ -113,7 +117,7 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 				if (PlayerChar->GetCurrentWeapon() != NULL)
 				{
 					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Weapon Fired"));
-					PlayerChar->GetCurrentWeapon()->Fire();
+					PlayerChar->GetCurrentWeapon()->Attack();
 				}
 				else
 				{
@@ -142,17 +146,53 @@ void AVoltigeurPlayerController::ProcessSelectionPawn(FHitResult Hit)
 {
 	ABaseCharacter* SelectedChar = Cast<ABaseCharacter>(Hit.GetActor());
 
-	//if Selected Character is a Friendly, then possess it
+	//if Selected Character is a Player possessible, then possess it
 	if (SelectedChar && SelectedChar->GetFriendlyState() == EFriendlyState::EPlayer)
 	{
 		//save this controller pawn in a pointer
 		ControllerPawnPtr = Cast<AVoltigeurDefaultPawn>(this->GetPawn());
-		this->UnPossess();
+		//Destroy DefaultPawn and it will respawn if Player deselects another character
+		ControllerPawnPtr->DetachFromControllerPendingDestroy();
+		ControllerPawnPtr->Destroy(); //destroy default pawn
 		this->Possess(SelectedChar);
 		this->SetPawn(SelectedChar);
 	}
 
 	//TODO else show Character Detail HUD
+}
+
+void AVoltigeurPlayerController::DeselectToDefaultPawn()
+{
+	//TODO Delete
+	GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, TEXT("In deselect"));
+	FHitResult Hit;
+	GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECC_Pawn), false, Hit);
+	//check if Pawn is default pawn already
+	AVoltigeurDefaultPawn* defaultpawn = Cast<AVoltigeurDefaultPawn>(GetPawn());
+	if (GetPawn() == NULL || defaultpawn)
+	{
+		return;
+	}
+	if (Hit.bBlockingHit)
+	{
+		//TODO Stop character to idle animation
+		GetPawn()->TurnOff();
+		this->UnPossess(); //unpossess selected character
+		FVector SpawnLoc = Hit.ImpactPoint;
+		FRotator SpawnRot = FRotator(0.f, 0.f, 0.f); //arbitrary value
+		FActorSpawnParameters SpawnParam;
+		SpawnParam.Owner = this;
+		SpawnParam.Instigator = Instigator;
+		AVoltigeurDefaultPawn* NewPawn = GetWorld()->SpawnActor<AVoltigeurDefaultPawn>(SpawnLoc, SpawnRot, SpawnParam);
+		if (NewPawn)
+		{
+			this->SetPawn(NewPawn);
+			this->Possess(GetPawn());
+			//TODO Delete
+			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("deselect Success"));
+		}
+	}
+
 }
 
 void AVoltigeurPlayerController::GoToLocation(FHitResult Hit)

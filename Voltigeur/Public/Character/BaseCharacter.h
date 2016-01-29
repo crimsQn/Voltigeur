@@ -42,6 +42,7 @@ struct FCharacterData
 
 	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
 	float health; //Character's health
+	//TODO float EyeRange;
 	//TODO implement stat system
 };
 
@@ -89,7 +90,7 @@ protected:
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
-	
+
 	void SetupCameraSettings();
 
 	/****Default Top-Down Settings****/
@@ -98,21 +99,30 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float MAX_TOPDOWN_BOOM_LENGTH = 1000.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	float MIN_TOPDOWN_BOOM_LENGTH = 500.f;
+	float MIN_TOPDOWN_BOOM_LENGTH = 700.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	float DEFAULT_ARM_LENGTH = 900.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	FRotator DEFAULT_CAMERA_ROT = FRotator(-50.f, 0.f, 0.f);
 
-
 	/****Default Third-Person Settings****/
-	const float MIN_CAM_ROT_PITCH = 0;
+	bool OnThirdPersonCam; //checks if zoom level exceeds min bounds of Top-Down camera, then go to third person cam
+
+	//Cam Rotation
+	float MIN_THIRDP_CAM_ROT_PITCH = -90.f; //at this pitch angle, cam is facing char's back
+	float MAX_THIRDP_CAM_ROT_PITCH = -50.f; //also default angle of top down cam
+	FRotator CAM_THIRDP_ROT_INC = FRotator(10.f, 0, 0); // increment how the cam rotates: 4 MUST match with Zoom Increment!
+	//float CAM_THIRDP_ROT_INC = 10.f;
+
+	//Cam Length
+	float MIN_THIRDP_BOOM_LENGTH = 400.f;
+	float MAX_THIRDP_BOOM_LENGTH = 700.f;
+	float ZOOM_THIRDP_INC = 50.f; //in ThirdPerson Cam, there is 4 zoom increments : Must match with Cam Rot Inc
 	
 	void ZoomIn();
 	void ZoomOut();
 	void ChangeView();
-
 
 	/*****************Interaction Settings***************/
 	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "false"))
@@ -127,7 +137,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character Status")
 	FCharacterData CharacterData;
-	//TODO float EyeRange;
+
 
 	/******************Collision Settings**********************/
 	/*
@@ -142,7 +152,6 @@ protected:
 	//If an actor collides such as weapon trigger pickup
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Collision", meta = (AllowPrivateAccess = "true"))
 	UBoxComponent* CollisionComp;
-
 
 	/******************Weapon Interaction Settings*************/
 	/*Equipments*/

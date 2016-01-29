@@ -11,11 +11,11 @@
 // Sets default values
 ABaseCharacter::ABaseCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
 
-	
+
 
 	SetupCameraSettings();
 	SetupCharacterSettings();
@@ -27,7 +27,7 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	/*Who is making spawn happen*/
 	/*	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = this;
@@ -42,9 +42,9 @@ void ABaseCharacter::BeginPlay()
 }
 
 // Called every frame
-void ABaseCharacter::Tick( float DeltaTime )
+void ABaseCharacter::Tick(float DeltaTime)
 {
-	Super::Tick( DeltaTime );
+	Super::Tick(DeltaTime);
 
 }
 
@@ -88,6 +88,9 @@ void ABaseCharacter::SetupCameraSettings()
 	TopDownCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"));
 	TopDownCameraComponent->AttachTo(CameraBoom, USpringArmComponent::SocketName);
 	TopDownCameraComponent->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	// third person camera toggle
+	OnThirdPersonCam = false;
 }
 
 void ABaseCharacter::SetupCollisionSettings()
@@ -116,38 +119,84 @@ void ABaseCharacter::SetupCharacterSettings()
 
 	CurrentWeapon = NULL; //NULL value is bare-hands
 
-	  /*From WeaponEssential Tutorial 1*/
-	 //	static ConstructorHelpers::FObjectFinder<UBlueprint> WeaponBP(TEXT("Blueprint'/Game/Blueprint/Weapon/Weapon_BP.Weapon_BP'"));
-	  //	WeaponSpawn = NULL; //make sure it is cleared
-	 //	if (WeaponBP.Succeeded())
-	 //	{
-	//		WeaponSpawn = (UClass*)WeaponBP.Object->GeneratedClass;
-  //	}
-}
-
-void ABaseCharacter::ZoomIn()
-{
-	const float ADJ_MAGN = CameraBoom->TargetArmLength + ZOOM_INCREMENT;
-	if (ADJ_MAGN < MAX_TOPDOWN_BOOM_LENGTH)
-	{
-		CameraBoom->TargetArmLength = ADJ_MAGN;
-	}
-	else
-	{
-		CameraBoom->TargetArmLength = MAX_TOPDOWN_BOOM_LENGTH;
-	}
 }
 
 void ABaseCharacter::ZoomOut()
 {
-	const float ADJ_MAGN = CameraBoom->TargetArmLength - ZOOM_INCREMENT;
-	if (ADJ_MAGN > MIN_TOPDOWN_BOOM_LENGTH)
+	//Top-Down cam
+	if (!OnThirdPersonCam)
 	{
-		CameraBoom->TargetArmLength = ADJ_MAGN;
+		const float ADJ_MAGN = CameraBoom->TargetArmLength + ZOOM_INCREMENT;
+		if (ADJ_MAGN < MAX_TOPDOWN_BOOM_LENGTH)
+		{
+			CameraBoom->TargetArmLength = ADJ_MAGN;
+		}
+		else
+		{
+			CameraBoom->TargetArmLength = MAX_TOPDOWN_BOOM_LENGTH;
+		}
 	}
-	else
+	else //Third Person Cam
 	{
-		CameraBoom->TargetArmLength = MIN_TOPDOWN_BOOM_LENGTH;
+		//check current cam rotation
+		//if camera did not exceed the maximum bounds, then zoom out
+		if (CameraBoom->RelativeRotation.Pitch < MAX_THIRDP_CAM_ROT_PITCH)
+		{
+			//TODO DELETE
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("3P ZoomOut"));
+			//change rotation
+			//CameraBoom->RelativeRotation.Pitch += CAM_THIRDP_ROT_INC;
+			FRotator NewRotation = CameraBoom->RelativeRotation.operator+=(CAM_THIRDP_ROT_INC);
+			//CameraBoom->RelativeRotation = NewRotation;
+			CameraBoom->SetRelativeRotation(NewRotation);
+			//change boom length
+			CameraBoom->TargetArmLength += ZOOM_THIRDP_INC;
+			OnThirdPersonCam = true;
+		}
+		else //restore default Zoomed in camera in Top-Down camera
+		{
+			//change rotation
+			//CameraBoom->RelativeRotation = DEFAULT_CAMERA_ROT;
+			//change boom length
+			CameraBoom->TargetArmLength = MIN_TOPDOWN_BOOM_LENGTH;
+			OnThirdPersonCam = false;
+		}
+	}
+}
+
+void ABaseCharacter::ZoomIn()
+{
+	//Top-Down cam
+	if (!OnThirdPersonCam)
+	{
+		const float ADJ_MAGN = CameraBoom->TargetArmLength - ZOOM_INCREMENT;
+		if (ADJ_MAGN > MIN_TOPDOWN_BOOM_LENGTH) //Zoom in
+		{
+			CameraBoom->TargetArmLength = ADJ_MAGN;
+			OnThirdPersonCam = false; //next time, don't go into third person cam
+		}
+		else
+		{
+			CameraBoom->TargetArmLength = MIN_TOPDOWN_BOOM_LENGTH;
+			OnThirdPersonCam = true; //next time, go into third person cam
+		}
+	}
+	else //Third-person Cam
+	{
+		//check current cam rotation
+		//if camera is did not exceed the minimum bounds, then zoom in
+		if (CameraBoom->RelativeRotation.Pitch > MIN_THIRDP_CAM_ROT_PITCH)
+		{
+			//TODO DELETE
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("3P ZoomIn"));
+			//change rotation
+			//CameraBoom->RelativeRotation.Pitch -= CAM_THIRDP_ROT_INC;
+			FRotator NewRotation = CameraBoom->RelativeRotation.operator-=(CAM_THIRDP_ROT_INC);
+			CameraBoom->SetRelativeRotation(NewRotation); 
+			//CameraBoom->RelativeRotation = NewRotation;
+			//change boom length
+			CameraBoom->TargetArmLength -= ZOOM_THIRDP_INC;
+		}
 	}
 }
 
@@ -184,17 +233,15 @@ void ABaseCharacter::EquipPistol()
 		//if character has a weapon in hand
 		if (CurrentWeapon != NULL)
 		{
-			for (int32 i = 0; i < WeaponInventory.Num(); i++)
+			//if found duplicate weapon in inventory and in-hand while un-equipping, destroy duplicate
+			if (WeaponInventory[WeaponSlot.PISTOL] != NULL &&
+				WeaponInventory[WeaponSlot.PISTOL]->GetDefaultObject<ARangedWeapon>()->WeaponConfig.Name
+				== CurrentWeapon->WeaponConfig.Name)
 			{
-				//if found duplicate weapon in inventory and in-hand while un-equipping, destroy duplicate
-				if (WeaponInventory[i] != NULL && WeaponInventory[i]->GetDefaultObject<ARangedWeapon>()->WeaponConfig.Name
-					== CurrentWeapon->WeaponConfig.Name)
-				{
-					//Free up memory of duplicated item in inventory slot
-					WeaponInventory[i]->GetDefaultObject<ARangedWeapon>()->Destroy();
-					WeaponInventory[i] = CurrentWeapon->GetClass();
-					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Put away " + CurrentWeapon->WeaponConfig.Name + " in Slot: " + FString::FromInt(i));
-				}
+				//Free up memory of duplicated item in inventory slot
+				WeaponInventory[WeaponSlot.PISTOL]->GetDefaultObject<ARangedWeapon>()->Destroy();
+				WeaponInventory[WeaponSlot.PISTOL] = CurrentWeapon->GetClass();
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Put away " + CurrentWeapon->WeaponConfig.Name + " in Slot: " + FString::FromInt(WeaponSlot.PISTOL));
 			}
 			CurrentWeapon->Destroy();
 			Spawner->CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); //need to temporarily disable collision to equip
@@ -218,23 +265,21 @@ void ABaseCharacter::EquipRifle()
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = Instigator;
 	ARangedWeapon* Spawner = GetWorld()->SpawnActor<ARangedWeapon>(WeaponInventory[WeaponSlot.RIFLE], SpawnParams);
-	//if pistol is successfully spawned
+	//if Rifle is successfully spawned
 	if (Spawner)
 	{
 		//if character has a weapon in hand
 		if (CurrentWeapon != NULL)
 		{
-			for (int32 i = 0; i < WeaponInventory.Num(); i++)
+			//if found duplicate weapon in inventory and in-hand while un-equipping, destroy duplicate
+			if (WeaponInventory[WeaponSlot.RIFLE] != NULL &&
+				WeaponInventory[WeaponSlot.RIFLE]->GetDefaultObject<ARangedWeapon>()->WeaponConfig.Name
+				== CurrentWeapon->WeaponConfig.Name)
 			{
-				//if found duplicate weapon in inventory and in-hand while un-equipping, destroy duplicate
-				if (WeaponInventory[i] != NULL && WeaponInventory[i]->GetDefaultObject<ARangedWeapon>()->WeaponConfig.Name
-					== CurrentWeapon->WeaponConfig.Name)
-				{
-					//Free up memory of duplicated item in inventory slot
-					WeaponInventory[i]->GetDefaultObject<ARangedWeapon>()->Destroy();
-					WeaponInventory[i] = CurrentWeapon->GetClass();
-					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Put away " + CurrentWeapon->WeaponConfig.Name + " in Slot: " + FString::FromInt(i));
-				}
+				//Free up memory of duplicated item in inventory slot
+				WeaponInventory[WeaponSlot.RIFLE]->GetDefaultObject<ARangedWeapon>()->Destroy();
+				WeaponInventory[WeaponSlot.RIFLE] = CurrentWeapon->GetClass();
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Put away " + CurrentWeapon->WeaponConfig.Name + " in Slot: " + FString::FromInt(WeaponSlot.RIFLE));
 			}
 			CurrentWeapon->Destroy();
 			Spawner->CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); //need to temporarily disable collision to equip

@@ -15,7 +15,8 @@ class VOLTIGEUR_API ARifle : public ARangedWeapon
 	
 
 public:
-	virtual void ProjectileFire() override;
+	ARifle();
 	
+	virtual void ProjectileFire() override;
 	
 };

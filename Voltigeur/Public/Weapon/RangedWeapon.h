@@ -48,6 +48,9 @@ struct FWeaponData
 	float WeaponSpread;
 
 	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
+	float Damage;
+
+	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
 	FString Name;
 };
 
@@ -63,9 +66,9 @@ public:
 	// Sets default values for this actor's properties
 	ARangedWeapon();
 
-	/*Trigger the fire*/
+	/*Triggers the ProjectileFire for the RangedWeapon class*/
 	UFUNCTION()
-	void Fire();
+	void Attack();
 
 	/*Weapon range, cost, etc...*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))

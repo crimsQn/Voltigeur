@@ -5,6 +5,17 @@
 #include "Projectile.h"
 #include "Engine.h"
 
+ARifle::ARifle()
+{
+	WeaponConfig.Name = TEXT("Rifle");
+	WeaponConfig.MaxAmmo = 36.f;
+	WeaponConfig.TimeBetweenShots = 15.f;
+	WeaponConfig.ShotCost = 1; //one bullet per shot
+	WeaponConfig.WeaponRange = 300.f;
+	WeaponConfig.Damage = 60.f;
+
+}
+
 void ARifle::ProjectileFire()
 {
 	Super::ProjectileFire();

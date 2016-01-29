@@ -5,14 +5,24 @@
 #include "Projectile.h"
 #include "Engine.h"
 
+APistol::APistol()
+{
+	WeaponConfig.Name = TEXT("Pistol");
+	WeaponConfig.MaxAmmo = 10.f;
+	WeaponConfig.TimeBetweenShots = 0.8f;
+	WeaponConfig.ShotCost = 1; //one bullet per shot
+	WeaponConfig.WeaponRange = 69.f;
+	WeaponConfig.Damage = 50.f;
+}
+
 void APistol::ProjectileFire()
 {
 	Super::ProjectileFire();
 
 	if (ProjectileClass != NULL)
 	{
-		FVector MuzzleLoc = WeaponMesh->GetSocketLocation("Weapon_Socket");
-		FRotator MuzzleRot = WeaponMesh->GetSocketRotation("Weapon_Socket") + FRotator(0.f, 90.f, 0.f); //adjustment needed or proj flies sideways 
+		FVector MuzzleLoc = WeaponMesh->GetSocketLocation("MuzzleFlashSocket"); //location of socket is on weapon mesh
+		FRotator MuzzleRot = WeaponMesh->GetSocketRotation("MuzzleFlashSocket");
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 		SpawnParams.Instigator = Instigator;

@@ -13,7 +13,7 @@ ARangedWeapon::ARangedWeapon()
 	WeaponMesh->AttachTo(RootComponent);
 }
 
-void ARangedWeapon::Fire()
+void ARangedWeapon::Attack()
 {
 	if (ProjectileType == EWeaponProjectile::EProjectile)
 	{
