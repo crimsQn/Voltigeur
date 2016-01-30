@@ -23,12 +23,15 @@ ABaseCharacter::ABaseCharacter()
 	SetupCharacterSettings();
 	SetupCollisionSettings();
 
+
 }
 
 // Called when the game starts or when spawned
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	GiveDefaultWeapon(); //give fist
 
 	/*Who is making spawn happen*/
 	/*	FActorSpawnParameters SpawnParams;
@@ -121,6 +124,18 @@ void ABaseCharacter::SetupCharacterSettings()
 
 	CurrentWeapon = NULL; //NULL value is bare-hands
 
+}
+
+void ABaseCharacter::GiveDefaultWeapon()
+{
+	AWeapon *Spawner = GetWorld()->SpawnActor<AWeapon>(WeaponSpawn);
+	if (Spawner)
+	{
+		WeaponInventory[Spawner->WeaponConfig.Priority] = Spawner;
+		CurrentWeapon = WeaponInventory[Spawner->WeaponConfig.Priority];
+		CurrentWeapon->SetOwningPawn(this);
+		CurrentWeapon->OnEquip();
+	}
 }
 
 void ABaseCharacter::ZoomOut()

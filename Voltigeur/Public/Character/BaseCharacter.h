@@ -156,6 +156,10 @@ protected:
 
 	/******************Weapon Interaction Settings*************/
 	void SetupCharacterSettings();
+
+	UPROPERTY(EditDefaultsOnly, Category = DefaultInventory)
+	TSubclassOf<AWeapon> WeaponSpawn;
+
 	/*Equipments*/
 	TArray<AWeapon*> WeaponInventory; //index 0 is nullptr which is fist
 	void ProcessWeaponPickup(AWeapon *Weapon);
@@ -164,6 +168,7 @@ protected:
 	void NextWeapon();
 	void PrevWeapon();
 	void EquipWeapon(AWeapon *Weapon);
+	void GiveDefaultWeapon();
 
 	void Aim(); //TODO need to implement
 
