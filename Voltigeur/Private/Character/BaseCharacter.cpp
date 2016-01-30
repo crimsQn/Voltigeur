@@ -2,7 +2,9 @@
 
 #include "Voltigeur.h"
 #include "BaseCharacter.h"
+#include "Weapon.h"
 #include "RangedWeapon.h"
+#include "MeleeWeapon.h"
 #include "Pistol.h"
 #include "Rifle.h"
 #include "Engine.h"
@@ -53,14 +55,14 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompo
 {
 	Super::SetupPlayerInputComponent(InputComponent);
 
-	InputComponent->BindAction("Pistol", IE_Pressed, this, &ABaseCharacter::EquipPistol);
-	InputComponent->BindAction("Rifle", IE_Pressed, this, &ABaseCharacter::EquipRifle);
-	InputComponent->BindAction("Melee", IE_Pressed, this, &ABaseCharacter::EquipMelee);
-
 	/**Camera Settings**/
 	InputComponent->BindAction("ZoomIn", IE_Pressed, this, &ABaseCharacter::ZoomIn);
 	InputComponent->BindAction("ZoomOut", IE_Pressed, this, &ABaseCharacter::ZoomOut);
 	InputComponent->BindAction("ChangeView", IE_Pressed, this, &ABaseCharacter::ChangeView);
+
+	/**Weapon Select**/
+	InputComponent->BindAction("NextWeapon", IE_Pressed, this, &ABaseCharacter::NextWeapon);
+	InputComponent->BindAction("PrevWeapon", IE_Pressed, this, &ABaseCharacter::PrevWeapon);
 }
 
 void ABaseCharacter::SetupCameraSettings()
@@ -115,7 +117,7 @@ void ABaseCharacter::SetupCharacterSettings()
 	CurrentFriendlyState = EFriendlyState::ENeutral; //Neutral to player by default
 
 	/*Inventory*/
-	WeaponInventory.SetNum(WeaponSlot.INVENTORY_SIZE, false);
+	WeaponInventory.SetNum(3, false);
 
 	CurrentWeapon = NULL; //NULL value is bare-hands
 
@@ -221,103 +223,129 @@ void ABaseCharacter::SetInterlocutor(ACharacter* const Interlocutor)
 	this->Interlocutor = Interlocutor;
 }
 
-void ABaseCharacter::EquipPistol()
-{
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = Instigator;
-	ARangedWeapon* Spawner = GetWorld()->SpawnActor<ARangedWeapon>(WeaponInventory[WeaponSlot.PISTOL], SpawnParams);
-	//if pistol is successfully spawned
-	if (Spawner)
-	{
-		//if character has a weapon in hand
-		if (CurrentWeapon != NULL)
-		{
-			//if found duplicate weapon in inventory and in-hand while un-equipping, destroy duplicate
-			if (WeaponInventory[WeaponSlot.PISTOL] != NULL &&
-				WeaponInventory[WeaponSlot.PISTOL]->GetDefaultObject<ARangedWeapon>()->WeaponConfig.Name
-				== CurrentWeapon->WeaponConfig.Name)
-			{
-				//Free up memory of duplicated item in inventory slot
-				WeaponInventory[WeaponSlot.PISTOL]->GetDefaultObject<ARangedWeapon>()->Destroy();
-				WeaponInventory[WeaponSlot.PISTOL] = CurrentWeapon->GetClass();
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Put away " + CurrentWeapon->WeaponConfig.Name + " in Slot: " + FString::FromInt(WeaponSlot.PISTOL));
-			}
-			CurrentWeapon->Destroy();
-			Spawner->CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); //need to temporarily disable collision to equip
-			Spawner->AttachRootComponentTo(GetMesh(), "Weapon_Socket", EAttachLocation::SnapToTarget);
-			CurrentWeapon = Spawner;
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Current Weapon " + CurrentWeapon->WeaponConfig.Name);
-		}
-		else //character is not wielding any weapon
-		{
-			Spawner->CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); //need to temporarily disable collision to equip
-			Spawner->AttachRootComponentTo(GetMesh(), "Weapon_Socket", EAttachLocation::SnapToTarget);
-			CurrentWeapon = Spawner;
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Current Weapon " + CurrentWeapon->WeaponConfig.Name);
-		}
-	}
-}
-
-void ABaseCharacter::EquipRifle()
-{
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = Instigator;
-	ARangedWeapon* Spawner = GetWorld()->SpawnActor<ARangedWeapon>(WeaponInventory[WeaponSlot.RIFLE], SpawnParams);
-	//if Rifle is successfully spawned
-	if (Spawner)
-	{
-		//if character has a weapon in hand
-		if (CurrentWeapon != NULL)
-		{
-			//if found duplicate weapon in inventory and in-hand while un-equipping, destroy duplicate
-			if (WeaponInventory[WeaponSlot.RIFLE] != NULL &&
-				WeaponInventory[WeaponSlot.RIFLE]->GetDefaultObject<ARangedWeapon>()->WeaponConfig.Name
-				== CurrentWeapon->WeaponConfig.Name)
-			{
-				//Free up memory of duplicated item in inventory slot
-				WeaponInventory[WeaponSlot.RIFLE]->GetDefaultObject<ARangedWeapon>()->Destroy();
-				WeaponInventory[WeaponSlot.RIFLE] = CurrentWeapon->GetClass();
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Put away " + CurrentWeapon->WeaponConfig.Name + " in Slot: " + FString::FromInt(WeaponSlot.RIFLE));
-			}
-			CurrentWeapon->Destroy();
-			Spawner->CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); //need to temporarily disable collision to equip
-			Spawner->AttachRootComponentTo(GetMesh(), "Weapon_Socket", EAttachLocation::SnapToTarget);
-			CurrentWeapon = Spawner;
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Current Weapon " + CurrentWeapon->WeaponConfig.Name);
-		}
-		else //character is not wielding any weapon
-		{
-			Spawner->CollisionComp->SetCollisionEnabled(ECollisionEnabled::NoCollision); //need to temporarily disable collision to equip
-			Spawner->AttachRootComponentTo(GetMesh(), "Weapon_Socket", EAttachLocation::SnapToTarget);
-			CurrentWeapon = Spawner;
-			GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Current Weapon " + CurrentWeapon->WeaponConfig.Name);
-		}
-	}
-}
-
-void ABaseCharacter::EquipMelee()
-{
-
-}
-
 void ABaseCharacter::OnCollision(AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	/*Object collided with OtherActor is which weapon?*/
-	APistol *Pistol = Cast<APistol>(OtherActor);
-	if (Pistol)
+	AWeapon *Weapon = Cast<AWeapon>(OtherActor);
+	if (Weapon)
 	{
-		WeaponInventory[WeaponSlot.PISTOL] = Pistol->GetClass();
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Picked up " + Pistol->WeaponConfig.Name);
-		Pistol->Destroy(); //after picked up destroy what's on ground
+		ProcessWeaponPickup(Weapon);
+
 	}
-	ARifle *Rifle = Cast<ARifle>(OtherActor);
-	if (Rifle)
+}
+
+void ABaseCharacter::ProcessWeaponPickup(AWeapon *Weapon)
+{
+	if (Weapon != NULL)
 	{
-		WeaponInventory[WeaponSlot.RIFLE] = Rifle->GetClass();
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Blue, "Picked up " + Rifle->WeaponConfig.Name);
-		Rifle->Destroy(); //after picked up destroy what's on ground
+		//if this inventory slot is empty
+		if (WeaponInventory[Weapon->WeaponConfig.Priority] == NULL)
+		{
+			//Pick up item
+			//can use TSubClass
+			AWeapon* Spawner = GetWorld()->SpawnActor<AWeapon>(Weapon->GetClass());
+			if (Spawner)
+			{
+				WeaponInventory[Spawner->WeaponConfig.Priority] = Spawner; //equivalent to Weapon but spawner checks if right subclass is spawned
+																		   //TODO Delete
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, TEXT("You just picked up a ")
+					+ WeaponInventory[Spawner->WeaponConfig.Priority]->WeaponConfig.Name);
+			}
+			Weapon->Destroy(); //we already have ptr stored with Spawner
+		}
+		else //already have a weapon so other pickups will increase ammo count
+		{
+			int32 CurrentAmmo = WeaponInventory[Weapon->WeaponConfig.Priority]->CurrentAmmo;
+			int32 MaxAmmo = WeaponInventory[Weapon->WeaponConfig.Priority]->WeaponConfig.MaxAmmo;
+
+			//if the current weapon has room to load-up more ammo
+			if (CurrentAmmo >= 0 && Weapon->CurrentAmmo <= (MaxAmmo - CurrentAmmo))
+			{
+				WeaponInventory[Weapon->WeaponConfig.Priority]->CurrentAmmo += Weapon->CurrentAmmo;
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Added ") + Weapon->CurrentAmmo);
+			}
+			else //if Current ammo is greater than MaxAmmo,
+			{
+				//on pickup, character salvage to max Ammo and throws rest away
+				WeaponInventory[Weapon->WeaponConfig.Priority]->CurrentAmmo = MaxAmmo;
+			}
+		}
+	}
+}
+
+void ABaseCharacter::NextWeapon()
+{
+	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
+	//if CurrentSlot has at least one next slot
+	if (CurrentWeaponSlot < WeaponInventory.Num() - 1)
+	{
+		//if next slot is empty or doesn't have a weapon
+		if (WeaponInventory[CurrentWeaponSlot + 1] == NULL)
+		{
+			//Traverse through the entire inventory until find a valid weapon to equip
+			for (int32 i = CurrentWeaponSlot; i < WeaponInventory.Num(); i++)
+			{
+				if (WeaponInventory[i] && WeaponInventory[i]->IsA(AWeapon::StaticClass()))
+				{
+					EquipWeapon(WeaponInventory[i]);
+				}
+			}
+		}
+		else
+		{
+			EquipWeapon(WeaponInventory[CurrentWeaponSlot + 1]);
+		}
+	}
+	else
+	{
+		//Do nothing
+		EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
+	}
+}
+
+void ABaseCharacter::PrevWeapon()
+{
+	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
+	if (WeaponInventory[CurrentWeaponSlot]->WeaponConfig.Priority != 0)
+	{
+		//if previous slot is empty
+		if (WeaponInventory[CurrentWeaponSlot - 1] == NULL)
+		{
+			for (int32 i = CurrentWeaponSlot - 1; i >= 0; i--)
+			{
+				if (WeaponInventory[i] && WeaponInventory[i]->IsA(AWeapon::StaticClass()))
+				{
+					EquipWeapon(WeaponInventory[i]);
+				}
+			}
+		}
+		else
+		{
+			EquipWeapon(WeaponInventory[CurrentWeaponSlot - 1]);
+		}
+	}
+	else
+	{
+		//Do nothing
+		EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
+	}
+}
+
+void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
+{
+	if (CurrentWeapon != NULL)
+	{
+		CurrentWeapon = WeaponInventory[CurrentWeapon->WeaponConfig.Priority]; //get item to Current Weapon
+		CurrentWeapon->OnUnequip(); //unequip it
+		CurrentWeapon = Weapon; 
+		Weapon->SetOwningPawn(this); //this specific class owns it
+		Weapon->OnEquip();
+	}
+	else
+	{
+		CurrentWeapon = Weapon;
+		CurrentWeapon = WeaponInventory[CurrentWeapon->WeaponConfig.Priority];
+		CurrentWeapon->SetOwningPawn(this);
+		Weapon->OnEquip();
 	}
 }

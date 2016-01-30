@@ -10,6 +10,7 @@
 /************************************************************************/
 class AWeapon;
 class ARangedWeapon;
+class AMeleeWeapon;
 
 
 /*State of character's friendlyness to Player. This will eventually determine
@@ -79,7 +80,7 @@ public:
 
 	//TODO Need to use generic Weapon
 	//Current Weapon
-	FORCEINLINE ARangedWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+	FORCEINLINE AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
 
 protected:
 	/*****************Camera Settings*****************/
@@ -154,15 +155,18 @@ protected:
 	UBoxComponent* CollisionComp;
 
 	/******************Weapon Interaction Settings*************/
-	/*Equipments*/
-	TArray<TSubclassOf<ARangedWeapon>> WeaponInventory; //index 0 is nullptr which is fist
-	FWeaponSlot WeaponSlot; //struct to organize slot # enumerations
-	class ARangedWeapon* CurrentWeapon; //initiated to NULL which means bare-hands 
 	void SetupCharacterSettings();
-	void EquipPistol();
-	void EquipRifle();
-	void EquipMelee();
-	void Aim();
+	/*Equipments*/
+	TArray<AWeapon*> WeaponInventory; //index 0 is nullptr which is fist
+	void ProcessWeaponPickup(AWeapon *Weapon);
+	FWeaponSlot WeaponSlot; //struct to organize slot # enumerations
+	class AWeapon* CurrentWeapon; //initiated to NULL which means bare-hands 
+	void NextWeapon();
+	void PrevWeapon();
+	void EquipWeapon(AWeapon *Weapon);
+
+	void Aim(); //TODO need to implement
+
 
 
 };

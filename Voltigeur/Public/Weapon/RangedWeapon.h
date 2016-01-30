@@ -12,6 +12,7 @@
 /************************************************************************/
 class AProjectile;
 
+
 /************************************************************************/
 /* Types of projectiles                                                 */
 /************************************************************************/
@@ -21,37 +22,6 @@ enum class EWeaponProjectile : uint8
 //	EBullet			UMETA(DisplayName = "Bullet"),
 //	ESpread			UMETA(DisplayName = "Spread"),
 	EProjectile		UMETA(DisplayName = "Projectile")
-};
-
-/************************************************************************/
-/* Weapon Data                                                          */
-/************************************************************************/
-USTRUCT()
-struct FWeaponData
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(EditDefaultsOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	int32 MaxAmmo;
-
-	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
-	float TimeBetweenShots;
-
-	/*Shoot three bullets every fire for example*/
-	UPROPERTY(EditDefaultsOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	int32 ShotCost;
-
-	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
-	float WeaponRange;
-
-	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
-	float WeaponSpread;
-
-	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
-	float Damage;
-
-	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
-	FString Name;
 };
 
 /**
@@ -68,14 +38,7 @@ public:
 
 	/*Triggers the ProjectileFire for the RangedWeapon class*/
 	UFUNCTION()
-	void Attack();
-
-	/*Weapon range, cost, etc...*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))
-	FWeaponData WeaponConfig;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* CollisionComp; //so that item can be picked by a Character
+	virtual void Attack() override;
 
 protected:
 
@@ -89,22 +52,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Projectile, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AProjectile> ProjectileClass;
 
+
 	/*Bullet, Spread, or Projectile*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))
 	EWeaponProjectile ProjectileType;
-
-	/*Slide of pistol animation, muzzle, etc... instead of static mesh*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
-	class USkeletalMeshComponent* WeaponMesh;
-
-	/*Direction and point of the bullet impact*/
-	const FHitResult WeaponTrace(const FVector &TraceFrom, const FVector &TraceTo);
 
 	/*If the bullet hit something, then what*/
 	//void ProcessInstantHit(const FHitResult &Impact, const FVector &Origin,
 	//	const FVector &ShootDir, int32 RandomSeed, float ReticleSpread);
 
-	
+	/*Direction and point of the bullet impact*/
+	const FHitResult WeaponTrace(const FVector &TraceFrom, const FVector &TraceTo);
 	
 	
 };

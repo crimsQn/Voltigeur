@@ -8,11 +8,12 @@
 APistol::APistol()
 {
 	WeaponConfig.Name = TEXT("Pistol");
-	WeaponConfig.MaxAmmo = 10.f;
+	WeaponConfig.MaxAmmo = 10;
 	WeaponConfig.TimeBetweenShots = 0.8f;
 	WeaponConfig.ShotCost = 1; //one bullet per shot
 	WeaponConfig.WeaponRange = 69.f;
 	WeaponConfig.Damage = 50.f;
+	WeaponConfig.Priority = 1; //weapon slot number in inventory
 }
 
 void APistol::ProjectileFire()
