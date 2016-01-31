@@ -13,7 +13,8 @@ ARifle::ARifle()
 	WeaponConfig.ShotCost = 1; //one bullet per shot
 	WeaponConfig.WeaponRange = 300.f;
 	WeaponConfig.Damage = 60.f;
-	WeaponConfig.Priority = 0; //weapon slot number in inventory
+	WeaponConfig.CategoryNum = 0; //weapon slot number in inventory
+	WeaponConfig.SerialNum = 0; //TODO replace with HashKey
 }
 
 void ARifle::ProjectileFire()

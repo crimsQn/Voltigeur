@@ -11,7 +11,8 @@
 class AWeapon;
 class ARangedWeapon;
 class AMeleeWeapon;
-
+class ARifle;
+class APistol;
 
 /*State of character's friendlyness to Player. This will eventually determine
 AI behaviors*/
@@ -25,7 +26,7 @@ enum class EFriendlyState : uint8
 };
 
 /*Basic inventory struct for weapons*/
-struct FWeaponSlot
+struct FWeaponInvConfig
 {
 	//const uint8 BAREHANDS = 0;
 	const uint8 RIFLE = 0;
@@ -161,14 +162,30 @@ protected:
 	TSubclassOf<AWeapon> WeaponSpawn;
 
 	/*Equipments*/
-	TArray<AWeapon*> WeaponInventory; //index 0 is nullptr which is fist
-	void ProcessWeaponPickup(AWeapon *Weapon);
-	FWeaponSlot WeaponSlot; //struct to organize slot # enumerations
+	FWeaponInvConfig WeaponInvConfig; //struct to organize slot # enumerations
+
+	/************************************************************************/
+	/* Weapon Inventory  (Rifle = 0, Pistol = 1, Melee = 2)                 */
+	/************************************************************************/
+	TArray<AWeapon*> RifleContainer; //Container for all rifles
+	TArray<AWeapon*> PistolContainer; //Container for sidearm pistols
+	TArray<AWeapon*> MeleeWeaponContainer; //Container for all melee weapons including default barefist
+	TArray<TArray<AWeapon*>> WeaponInventory; //Super container of all specific weapon containers
+	int32 CurrentWeaponTypeIndex; //Current index of the weapon
+
+	/*Initialize Weapon Inventory with sub-containers for three types of weapons*/
+	void InitializeInventory();
+
+	//TDoubleLinkedList<AWeapon*> WeaponInventory; //add fist weapon which will never be removed
+	//stack<AMeleeWeapon> MeleeWeaponContainer;
 	class AWeapon* CurrentWeapon; //initiated to NULL which means bare-hands 
+	void ProcessWeaponPickup(AWeapon *Weapon);
+
 	void NextWeapon();
 	void PrevWeapon();
+	AWeapon* GrabWeaponFromSubContainer(int32 WeaponTypeNum);
 	void EquipWeapon(AWeapon *Weapon);
-	void GiveDefaultWeapon();
+	AWeapon* GiveDefaultWeapon();
 
 	void Aim(); //TODO need to implement
 

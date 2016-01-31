@@ -18,5 +18,5 @@ public:
 
 	virtual void ProjectileFire() override;
 	
-	
+	//FORCEINLINE int32 GetWeaponPriority() { return WeaponConfig.Priority; }
 };

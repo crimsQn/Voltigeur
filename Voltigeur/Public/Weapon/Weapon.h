@@ -18,33 +18,42 @@ struct FWeaponData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
+	/******************General Weapon Settings*****************/
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon General", meta = (AllowPrivateAccess = "true"))
+	FString Name;
+
+	/*Rifle is 0, Pistol 1, Melee 2*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon General", meta = (AllowPrivateAccess = "true"))
+	int32 CategoryNum;
+
+	/*Unique Array Index Num of this weapon instance: HashKey*/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon General", meta = (AllowPrivateAccess = "true"))
+	int32 SerialNum;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon General", meta = (AllowPrivateAccess = "true"))
+	float WeaponRange;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon General", meta = (AllowPrivateAccess = "true"))
+	float Damage;
+	
+	/*********************Ranged Weapon Settings*******************/
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
 	int32 MaxAmmo;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
 	int32 MaxClip;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
 	float TimeBetweenShots;
 
 	/*Shoot three bullets every fire for example*/
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
 	int32 ShotCost;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	float WeaponRange;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
 	float WeaponSpread;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	float Damage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	int32 Priority;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	FString Name;
 };
 
 UCLASS()

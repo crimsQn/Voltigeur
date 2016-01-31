@@ -19,7 +19,7 @@ class AProjectile;
 UENUM(BlueprintType)
 enum class EWeaponProjectile : uint8
 {
-//	EBullet			UMETA(DisplayName = "Bullet"),
+	EBullet			UMETA(DisplayName = "Bullet"),
 //	ESpread			UMETA(DisplayName = "Spread"),
 	EProjectile		UMETA(DisplayName = "Projectile")
 };
@@ -51,7 +51,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = Projectile, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AProjectile> ProjectileClass;
-
 
 	/*Bullet, Spread, or Projectile*/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))

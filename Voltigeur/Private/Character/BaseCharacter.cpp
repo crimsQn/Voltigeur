@@ -7,6 +7,7 @@
 #include "MeleeWeapon.h"
 #include "Pistol.h"
 #include "Rifle.h"
+#include "BareFists.h"
 #include "Engine.h"
 #include "Engine/Blueprint.h"
 
@@ -24,6 +25,7 @@ ABaseCharacter::ABaseCharacter()
 	SetupCollisionSettings();
 
 
+
 }
 
 // Called when the game starts or when spawned
@@ -31,7 +33,8 @@ void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	GiveDefaultWeapon(); //give fist
+	CurrentWeapon = GiveDefaultWeapon();
+	InitializeInventory();
 
 	/*Who is making spawn happen*/
 	/*	FActorSpawnParameters SpawnParams;
@@ -120,22 +123,58 @@ void ABaseCharacter::SetupCharacterSettings()
 	CurrentFriendlyState = EFriendlyState::ENeutral; //Neutral to player by default
 
 	/*Inventory*/
-	WeaponInventory.SetNum(3, false);
+
+	//WeaponInventory.SetNum(3, false);
 
 	CurrentWeapon = NULL; //NULL value is bare-hands
 
 }
 
-void ABaseCharacter::GiveDefaultWeapon()
+void ABaseCharacter::InitializeInventory()
 {
+	//Spawn and give default weapon to character
+	//AWeapon* DefaultWeapon = Cast<AWeapon>(GiveDefaultWeapon());
+	//if (DefaultWeapon)
+	//{
+		WeaponInventory.SetNumUninitialized(WeaponInvConfig.INVENTORY_SIZE);
+		MeleeWeaponContainer.SetNumUninitialized(1);
+		MeleeWeaponContainer.Insert(CurrentWeapon, 0);
+
+		//Add Weapon Containers
+		//TODO hardcoded inventory indexes
+		WeaponInventory.Insert(RifleContainer, 0);
+		WeaponInventory.Insert(PistolContainer, 1);
+		WeaponInventory.Insert(MeleeWeaponContainer, 2); //2 is where melee weapons are stored
+		//TODO delete
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("Initialized Inventory"));
+	//}
+}
+
+AWeapon* ABaseCharacter::GiveDefaultWeapon()
+{
+	//Give barefist to Character
 	AWeapon *Spawner = GetWorld()->SpawnActor<AWeapon>(WeaponSpawn);
 	if (Spawner)
 	{
-		WeaponInventory[Spawner->WeaponConfig.Priority] = Spawner;
-		CurrentWeapon = WeaponInventory[Spawner->WeaponConfig.Priority];
 		CurrentWeapon->SetOwningPawn(this);
 		CurrentWeapon->OnEquip();
+		CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
+		return Spawner;
 	}
+	else
+	{
+		return NULL;
+	}
+
+	/*TArray Implementation*/
+	//AWeapon *Spawner = GetWorld()->SpawnActor<AWeapon>(WeaponSpawn);
+	//if (Spawner)
+	//{
+	//	WeaponInventory[Spawner->WeaponConfig.Priority] = Spawner;
+	//	CurrentWeapon = WeaponInventory[Spawner->WeaponConfig.Priority];
+	//	CurrentWeapon->SetOwningPawn(this);
+	//	CurrentWeapon->OnEquip();
+	//}
 }
 
 void ABaseCharacter::ZoomOut()
@@ -209,7 +248,7 @@ void ABaseCharacter::ZoomIn()
 			//change rotation
 			//CameraBoom->RelativeRotation.Pitch -= CAM_THIRDP_ROT_INC;
 			FRotator NewRotation = CameraBoom->RelativeRotation.operator-=(CAM_THIRDP_ROT_INC);
-			CameraBoom->SetRelativeRotation(NewRotation); 
+			CameraBoom->SetRelativeRotation(NewRotation);
 			//CameraBoom->RelativeRotation = NewRotation;
 			//change boom length
 			CameraBoom->TargetArmLength -= ZOOM_THIRDP_INC;
@@ -245,12 +284,56 @@ void ABaseCharacter::OnCollision(AActor* OtherActor, UPrimitiveComponent* OtherC
 	if (Weapon)
 	{
 		ProcessWeaponPickup(Weapon);
-
 	}
 }
 
-void ABaseCharacter::ProcessWeaponPickup(AWeapon *Weapon)
+void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 {
+	/*Doubly Linked List Implementation*/
+	if (Weapon != NULL)
+	{
+		int32 CategoryNum = Weapon->WeaponConfig.CategoryNum;
+		//Pointer to save memory
+		//TArray<AWeapon*>* SubContainer = &WeaponInventory[Priority]; //this is class of weapon
+		TArray<AWeapon*> SubContainer = WeaponInventory[CategoryNum]; //this is class of weapon
+
+
+		int32 NewWeaponIndex = Weapon->WeaponConfig.SerialNum; //Unintialized index of new weapon
+		if (SubContainer.Contains(Weapon))
+		{
+			//Pick up item and stash it in the subcontainer
+			AWeapon* Spawner = GetWorld()->SpawnActor<AWeapon>(Weapon->GetClass());
+			if (Spawner)
+			{
+				//NewWeaponIndex = SubContainer->AddUnique(Spawner); //new weapon added
+				NewWeaponIndex = SubContainer.AddUnique(Spawner); //new weapon added
+				//TODO Delete
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Just picked up a ")
+					+ SubContainer[NewWeaponIndex]->WeaponConfig.Name);
+			}
+			Weapon->Destroy(); //already stored in the subcontainer
+		}
+		//if already have that item in subcontainer, 
+		//so additional pickup merely increases ammo count if there is any
+		else
+		{
+			int32 CurrentAmmo = SubContainer[NewWeaponIndex]->CurrentAmmo;
+			int32 MaxAmmo = SubContainer[NewWeaponIndex]->WeaponConfig.MaxAmmo;
+
+			//if the current weapon has room to load-up more ammo
+			if (CurrentAmmo >= 0 && Weapon->CurrentAmmo <= (MaxAmmo - CurrentAmmo))
+			{
+				SubContainer[NewWeaponIndex]->CurrentAmmo += Weapon->CurrentAmmo;
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Added ") + Weapon->CurrentAmmo);
+			}
+			else //if Current ammo is greater than MaxAmmo,
+			{
+				//on pickup, character salvage to max Ammo and throws rest away
+				SubContainer[NewWeaponIndex]->CurrentAmmo = MaxAmmo;
+			}
+		}
+	}
+	/*Array Implementation
 	if (Weapon != NULL)
 	{
 		//if this inventory slot is empty
@@ -286,10 +369,47 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon *Weapon)
 			}
 		}
 	}
+	*/
 }
 
 void ABaseCharacter::NextWeapon()
 {
+	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
+	//Next weapon is the next weapon type.
+
+	//Check if current index is size of WeaponInventory array. Or next weapon index will exceed array size
+	if (CurrentWeaponTypeIndex == WeaponInventory.Num())
+	{
+		//Select weapon from index 0
+		//Check if next weapon exists, if not then equip fist
+		for (int32 i = 0; i <= CurrentWeaponTypeIndex; i++)
+		{
+			AWeapon* Temp = GrabWeaponFromSubContainer(i);
+			if (Temp) //found valid weapon
+			{
+				EquipWeapon(Temp);
+				//TODO Delete
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Next Weapon"));
+				return;
+			}
+		}
+	}
+	else //for pistol and rifle, if next weapon is empty, then reverts to fist which is always in Melee container
+	{
+		for (int32 i = CurrentWeaponTypeIndex + 1; i < WeaponInventory.Num(); i++)
+		{
+			AWeapon* Temp = GrabWeaponFromSubContainer(i);
+			if (Temp) //found valid weapon
+			{
+				EquipWeapon(Temp);
+				//TODO Delete
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Next Weapon"));
+				return;
+			}
+		}
+	}
+
+	/*
 	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
 	//if CurrentSlot has at least one next slot
 	if (CurrentWeaponSlot < WeaponInventory.Num() - 1)
@@ -316,10 +436,47 @@ void ABaseCharacter::NextWeapon()
 		//Do nothing
 		EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
 	}
+	*/
 }
 
 void ABaseCharacter::PrevWeapon()
 {
+	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
+	//Next weapon is the next weapon type.
+
+	//Check if current index is 0. Or prev weapon index will exceed array bounds
+	if (CurrentWeaponTypeIndex == 0)
+	{
+		//Select weapon from index 0
+		//Check if next weapon exists, if not then equip fist.
+		for (int32 i = WeaponInventory.Num(); i > 0; i--)
+		{
+			AWeapon* Temp = GrabWeaponFromSubContainer(i);
+			if (Temp) //found valid weapon
+			{
+				EquipWeapon(Temp);
+				//TODO Delete
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Previous Weapon"));
+				return;
+			}
+		}
+	}
+	else //for pistol and melee
+	{
+		for (int32 i = CurrentWeaponTypeIndex - 1; i > 0; i--)
+		{
+			AWeapon* Temp = GrabWeaponFromSubContainer(i);
+			if (Temp) //found valid weapon
+			{
+				EquipWeapon(Temp);
+				//TODO Delete
+				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Previous Weapon"));
+				return;
+			}
+		}
+	}
+
+	/*
 	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
 	if (WeaponInventory[CurrentWeaponSlot]->WeaponConfig.Priority != 0)
 	{
@@ -344,15 +501,59 @@ void ABaseCharacter::PrevWeapon()
 		//Do nothing
 		EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
 	}
+	*/
+}
+
+AWeapon* ABaseCharacter::GrabWeaponFromSubContainer(int32 WeaponTypeNum)
+{
+	//input validation
+	if (WeaponTypeNum < WeaponInventory.Num())
+	{
+		//check if inner container is empty
+		if (WeaponInventory[WeaponTypeNum].Num() == 0)
+		{
+			//return NULL
+			return NULL;
+		}
+		else
+		{
+			return WeaponInventory[WeaponTypeNum].Pop(true);
+		}
+	}
+		return NULL;
 }
 
 void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 {
+
+	if (CurrentWeapon != NULL)
+	{
+		int32 CurrWeaponTypeNum = CurrentWeapon->WeaponConfig.CategoryNum;
+		int32 CurrWeaponSerialNum = CurrentWeapon->WeaponConfig.SerialNum;
+		TArray<AWeapon*> TempContainer = WeaponInventory[CurrWeaponTypeNum]; //TODO Copying entire ARRAY!!!
+		CurrentWeapon = TempContainer[CurrWeaponSerialNum];  //store current item to container/inventory
+		CurrentWeapon->OnUnequip(); //unequip weapon currently in hand
+		CurrentWeapon = Weapon;
+		Weapon->SetOwningPawn(this); //this specific class owns it
+		Weapon->OnEquip();
+	}
+	else
+	{
+		CurrentWeapon = Weapon;
+		int32 CurrWeaponTypeNum = CurrentWeapon->WeaponConfig.CategoryNum;
+		int32 CurrWeaponSerialNum = CurrentWeapon->WeaponConfig.SerialNum;
+		TArray<AWeapon*> TempContainer = WeaponInventory[CurrWeaponTypeNum]; //TODO Copying entire ARRAY!!!
+		CurrentWeapon = TempContainer[CurrWeaponSerialNum];  //store current item to container/inventory
+		CurrentWeapon->SetOwningPawn(this);
+		Weapon->OnEquip();
+	}
+
+	/*
 	if (CurrentWeapon != NULL)
 	{
 		CurrentWeapon = WeaponInventory[CurrentWeapon->WeaponConfig.Priority]; //get item to Current Weapon
 		CurrentWeapon->OnUnequip(); //unequip it
-		CurrentWeapon = Weapon; 
+		CurrentWeapon = Weapon;
 		Weapon->SetOwningPawn(this); //this specific class owns it
 		Weapon->OnEquip();
 	}
@@ -363,4 +564,5 @@ void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 		CurrentWeapon->SetOwningPawn(this);
 		Weapon->OnEquip();
 	}
+	*/
 }

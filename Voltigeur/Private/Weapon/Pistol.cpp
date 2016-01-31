@@ -13,7 +13,8 @@ APistol::APistol()
 	WeaponConfig.ShotCost = 1; //one bullet per shot
 	WeaponConfig.WeaponRange = 69.f;
 	WeaponConfig.Damage = 50.f;
-	WeaponConfig.Priority = 1; //weapon slot number in inventory
+	WeaponConfig.CategoryNum = 1; //weapon slot number in inventory
+	WeaponConfig.SerialNum = 0; //TODO replace with HashKey
 }
 
 void APistol::ProjectileFire()
