@@ -3,13 +3,10 @@
 #include "Voltigeur.h"
 #include "BaseCharacter.h"
 #include "Weapon.h"
-#include "RangedWeapon.h"
-#include "MeleeWeapon.h"
-#include "Pistol.h"
-#include "Rifle.h"
 #include "BareFists.h"
 #include "Engine.h"
 #include "Engine/Blueprint.h"
+#include "Inventory.h"
 
 // Sets default values
 ABaseCharacter::ABaseCharacter()
@@ -132,6 +129,9 @@ void ABaseCharacter::SetupCharacterSettings()
 
 void ABaseCharacter::InitializeInventory()
 {
+	CharInventory = new Inventory::Inventory();
+
+	/* Deprecated using Inventory.cpp instead
 	//Spawn and give default weapon to character
 	//AWeapon* DefaultWeapon = Cast<AWeapon>(GiveDefaultWeapon());
 	//if (DefaultWeapon)
@@ -148,10 +148,13 @@ void ABaseCharacter::InitializeInventory()
 		//TODO delete
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Green, TEXT("Initialized Inventory"));
 	//}
+	*/
 }
 
 AWeapon* ABaseCharacter::GiveDefaultWeapon()
 {
+
+	/*
 	//Give barefist to Character
 	AWeapon *Spawner = GetWorld()->SpawnActor<AWeapon>(WeaponSpawn);
 	if (Spawner)
@@ -165,6 +168,7 @@ AWeapon* ABaseCharacter::GiveDefaultWeapon()
 	{
 		return NULL;
 	}
+	*/
 
 	/*TArray Implementation*/
 	//AWeapon *Spawner = GetWorld()->SpawnActor<AWeapon>(WeaponSpawn);
@@ -289,7 +293,9 @@ void ABaseCharacter::OnCollision(AActor* OtherActor, UPrimitiveComponent* OtherC
 
 void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 {
-	/*Doubly Linked List Implementation*/
+
+	/*
+	//Doublylinked list
 	if (Weapon != NULL)
 	{
 		int32 CategoryNum = Weapon->WeaponConfig.CategoryNum;
@@ -333,6 +339,7 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 			}
 		}
 	}
+	*/
 	/*Array Implementation
 	if (Weapon != NULL)
 	{
@@ -374,6 +381,8 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 
 void ABaseCharacter::NextWeapon()
 {
+
+	/*
 	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
 	//Next weapon is the next weapon type.
 
@@ -408,6 +417,7 @@ void ABaseCharacter::NextWeapon()
 			}
 		}
 	}
+*/
 
 	/*
 	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
@@ -441,6 +451,8 @@ void ABaseCharacter::NextWeapon()
 
 void ABaseCharacter::PrevWeapon()
 {
+
+	/*
 	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
 	//Next weapon is the next weapon type.
 
@@ -475,7 +487,7 @@ void ABaseCharacter::PrevWeapon()
 			}
 		}
 	}
-
+	*/
 	/*
 	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
 	if (WeaponInventory[CurrentWeaponSlot]->WeaponConfig.Priority != 0)
@@ -504,6 +516,7 @@ void ABaseCharacter::PrevWeapon()
 	*/
 }
 
+/*
 AWeapon* ABaseCharacter::GrabWeaponFromSubContainer(int32 WeaponTypeNum)
 {
 	//input validation
@@ -522,10 +535,13 @@ AWeapon* ABaseCharacter::GrabWeaponFromSubContainer(int32 WeaponTypeNum)
 	}
 		return NULL;
 }
+*/
 
 void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 {
 
+
+	/*
 	if (CurrentWeapon != NULL)
 	{
 		int32 CurrWeaponTypeNum = CurrentWeapon->WeaponConfig.CategoryNum;
@@ -547,6 +563,7 @@ void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 		CurrentWeapon->SetOwningPawn(this);
 		Weapon->OnEquip();
 	}
+	*/
 
 	/*
 	if (CurrentWeapon != NULL)

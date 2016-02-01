@@ -9,10 +9,7 @@
 /* Forward Declarations                                                 */
 /************************************************************************/
 class AWeapon;
-class ARangedWeapon;
-class AMeleeWeapon;
-class ARifle;
-class APistol;
+class Inventory;
 
 /*State of character's friendlyness to Player. This will eventually determine
 AI behaviors*/
@@ -25,7 +22,7 @@ enum class EFriendlyState : uint8
 	EHostile		UMETA(DisplayName = "Hostile")
 };
 
-/*Basic inventory struct for weapons*/
+/*
 struct FWeaponInvConfig
 {
 	//const uint8 BAREHANDS = 0;
@@ -36,6 +33,8 @@ struct FWeaponInvConfig
 	const uint8 INVENTORY_SIZE = 3;
 	uint8 CurrentlyEquippedSlot;
 };
+*
+*Basic inventory struct for weapons*/
 
 USTRUCT(BlueprintType)
 struct FCharacterData
@@ -158,23 +157,27 @@ protected:
 	/******************Weapon Interaction Settings*************/
 	void SetupCharacterSettings();
 
-	UPROPERTY(EditDefaultsOnly, Category = DefaultInventory)
+	UPROPERTY(EditDefaultsOnly, Category = Inventory)
 	TSubclassOf<AWeapon> WeaponSpawn;
-
-	/*Equipments*/
-	FWeaponInvConfig WeaponInvConfig; //struct to organize slot # enumerations
 
 	/************************************************************************/
 	/* Weapon Inventory  (Rifle = 0, Pistol = 1, Melee = 2)                 */
 	/************************************************************************/
+	/*Deprecated. Use Inventory.cpp
 	TArray<AWeapon*> RifleContainer; //Container for all rifles
 	TArray<AWeapon*> PistolContainer; //Container for sidearm pistols
 	TArray<AWeapon*> MeleeWeaponContainer; //Container for all melee weapons including default barefist
 	TArray<TArray<AWeapon*>> WeaponInventory; //Super container of all specific weapon containers
 	int32 CurrentWeaponTypeIndex; //Current index of the weapon
+	FWeaponInvConfig WeaponInvConfig; //struct to organize slot # enumerations
+	AWeapon* GrabWeaponFromSubContainer(int32 WeaponTypeNum);
+	*/
+	
 
 	/*Initialize Weapon Inventory with sub-containers for three types of weapons*/
 	void InitializeInventory();
+	Inventory CharInventory;
+	AWeapon* GiveDefaultWeapon();
 
 	//TDoubleLinkedList<AWeapon*> WeaponInventory; //add fist weapon which will never be removed
 	//stack<AMeleeWeapon> MeleeWeaponContainer;
@@ -183,9 +186,7 @@ protected:
 
 	void NextWeapon();
 	void PrevWeapon();
-	AWeapon* GrabWeaponFromSubContainer(int32 WeaponTypeNum);
 	void EquipWeapon(AWeapon *Weapon);
-	AWeapon* GiveDefaultWeapon();
 
 	void Aim(); //TODO need to implement
 
