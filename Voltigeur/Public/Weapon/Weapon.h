@@ -54,6 +54,8 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
 	float WeaponSpread;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
+	float Caliber;
 };
 
 UCLASS()

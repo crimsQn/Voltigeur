@@ -15,6 +15,7 @@ ARifle::ARifle()
 	WeaponConfig.Damage = 60.f;
 	WeaponConfig.CategoryNum = 0; //weapon slot number in inventory
 	WeaponConfig.SerialNum = 0; //TODO replace with HashKey
+	WeaponConfig.Caliber = 0.58f;
 }
 
 void ARifle::ProjectileFire()

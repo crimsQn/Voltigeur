@@ -41,10 +41,10 @@ struct FCharacterData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
-	float health; //Character's health
-	//TODO float EyeRange;
-	//TODO implement stat system
+		UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
+		float health; //Character's health
+		//TODO float EyeRange;
+		//TODO implement stat system
 };
 
 UCLASS()
@@ -58,9 +58,9 @@ public:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
 	// Called every frame
-	virtual void Tick( float DeltaSeconds ) override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
@@ -80,7 +80,7 @@ public:
 
 	//TODO Need to use generic Weapon
 	//Current Weapon
-	FORCEINLINE AWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
+	FORCEINLINE AWeapon* GetCurrentWeapon() { return CurrentWeapon; }
 
 protected:
 	/*****************Camera Settings*****************/
@@ -96,22 +96,22 @@ protected:
 
 	/****Default Top-Down Settings****/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	float ZOOM_INCREMENT = 70.f;
+		float ZOOM_INCREMENT = 70.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	float MAX_TOPDOWN_BOOM_LENGTH = 1000.f;
+		float MAX_TOPDOWN_BOOM_LENGTH = 1000.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	float MIN_TOPDOWN_BOOM_LENGTH = 700.f;
+		float MIN_TOPDOWN_BOOM_LENGTH = 700.f;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	float DEFAULT_ARM_LENGTH = 900.f;
+		float DEFAULT_ARM_LENGTH = 900.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	FRotator DEFAULT_CAMERA_ROT = FRotator(-50.f, 0.f, 0.f);
+		FRotator DEFAULT_CAMERA_ROT = FRotator(-50.f, 0.f, 0.f);
 
 	/****Default Third-Person Settings****/
 	bool OnThirdPersonCam; //checks if zoom level exceeds min bounds of Top-Down camera, then go to third person cam
 
 	//Cam Rotation
-	float MIN_THIRDP_CAM_ROT_PITCH = -90.f; //at this pitch angle, cam is facing char's back
+	float MIN_THIRDP_CAM_ROT_PITCH = 90.f; //at this pitch angle, cam is facing char's back
 	float MAX_THIRDP_CAM_ROT_PITCH = -50.f; //also default angle of top down cam
 	FRotator CAM_THIRDP_ROT_INC = FRotator(10.f, 0, 0); // increment how the cam rotates: 4 MUST match with Zoom Increment!
 	//float CAM_THIRDP_ROT_INC = 10.f;
@@ -120,24 +120,24 @@ protected:
 	float MIN_THIRDP_BOOM_LENGTH = 400.f;
 	float MAX_THIRDP_BOOM_LENGTH = 700.f;
 	float ZOOM_THIRDP_INC = 50.f; //in ThirdPerson Cam, there is 4 zoom increments : Must match with Cam Rot Inc
-	
+
 	void ZoomIn();
 	void ZoomOut();
 	void ChangeView();
 
 	/*****************Interaction Settings***************/
 	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "false"))
-	ACharacter* Target; //the character that this unit is targeting
-	
-	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "false"))
-	ACharacter* Interlocutor; //the character this unit is interacting/talking to
+		ACharacter* Target; //the character that this unit is targeting
 
-	/******************Character Data Settings*****************/
+	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "false"))
+		ACharacter* Interlocutor; //the character this unit is interacting/talking to
+
+		/******************Character Data Settings*****************/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
-	EFriendlyState CurrentFriendlyState; //hostile to player, etc...
+		EFriendlyState CurrentFriendlyState; //hostile to player, etc...
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character Status")
-	FCharacterData CharacterData;
+		FCharacterData CharacterData;
 
 
 	/******************Collision Settings**********************/
@@ -146,19 +146,16 @@ protected:
 	@param OtherComp seam component? I'm not sure...
 	*/
 	UFUNCTION()
-	void OnCollision(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
-	
+		void OnCollision(AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
+
 	void SetupCollisionSettings();
 
 	//If an actor collides such as weapon trigger pickup
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Collision", meta = (AllowPrivateAccess = "true"))
-	UBoxComponent* CollisionComp;
+		UBoxComponent* CollisionComp;
 
 	/******************Weapon Interaction Settings*************/
 	void SetupCharacterSettings();
-
-	UPROPERTY(EditDefaultsOnly, Category = Inventory)
-	TSubclassOf<AWeapon> WeaponSpawn;
 
 	/************************************************************************/
 	/* Weapon Inventory  (Rifle = 0, Pistol = 1, Melee = 2)                 */
@@ -172,16 +169,21 @@ protected:
 	FWeaponInvConfig WeaponInvConfig; //struct to organize slot # enumerations
 	AWeapon* GrabWeaponFromSubContainer(int32 WeaponTypeNum);
 	*/
-	
+
 
 	/*Initialize Weapon Inventory with sub-containers for three types of weapons*/
-	void InitializeInventory();
-	Inventory CharInventory;
-	AWeapon* GiveDefaultWeapon();
+	void InitializeInventory(); //TODO deprecated currently doing nothing at all
+	Inventory* CharInventory;
+
+	UPROPERTY(EditDefaultsOnly, Category = Inventory)
+		TSubclassOf<AWeapon> WeaponSpawn;
+
+	void GiveDefaultWeapon();
 
 	//TDoubleLinkedList<AWeapon*> WeaponInventory; //add fist weapon which will never be removed
 	//stack<AMeleeWeapon> MeleeWeaponContainer;
-	class AWeapon* CurrentWeapon; //initiated to NULL which means bare-hands 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Inventory, meta = (AllowPrivateAccess = "true"))
+	AWeapon* CurrentWeapon; //initiated to NULL which means bare-hands 
 	void ProcessWeaponPickup(AWeapon *Weapon);
 
 	void NextWeapon();
@@ -189,6 +191,7 @@ protected:
 	void EquipWeapon(AWeapon *Weapon);
 
 	void Aim(); //TODO need to implement
+
 
 
 

@@ -15,6 +15,7 @@ APistol::APistol()
 	WeaponConfig.Damage = 50.f;
 	WeaponConfig.CategoryNum = 1; //weapon slot number in inventory
 	WeaponConfig.SerialNum = 0; //TODO replace with HashKey
+	WeaponConfig.Caliber = 0.36f;
 }
 
 void APistol::ProjectileFire()
