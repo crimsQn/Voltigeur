@@ -159,7 +159,7 @@ void ABaseCharacter::GiveDefaultWeapon()
 		CurrentWeapon->SetOwningPawn(this);
 		CurrentWeapon->OnEquip();
 	}
-	
+
 	/*TArray Implementation*/
 	//AWeapon *Spawner = GetWorld()->SpawnActor<AWeapon>(WeaponSpawn);
 	//if (Spawner)
@@ -290,7 +290,7 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 		//TODO input validation for inventory.cpp. Check GetWeaponInArray function
 	//	if (CharInventory->GetWeaponInArray(WeaponTypeIndex) == nullptr)
 		//	return;
-		
+
 		//if this inventory slot is empty
 		if (CharInventory->GetWeaponInArray(WeaponTypeIndex) == NULL)
 		{
@@ -298,10 +298,10 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 			AWeapon * Spawner = GetWorld()->SpawnActor<AWeapon>(Weapon->GetClass());
 			if (Spawner)
 			{
-				CharInventory->SetWeaponInArray(WeaponTypeIndex, Spawner);
+				CharInventory->AddWeapon(Spawner);
 				//TODO Delete
-				//GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, TEXT("You just picked up a ")
-				//	+ CharInventory->GetWeaponInArray(WeaponTypeIndex)->WeaponConfig.Name);
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, TEXT("You just picked up a new weapon "
+					+ CharInventory->GetWeaponInArray(WeaponTypeIndex)->WeaponConfig.Name));
 			}
 			Weapon->Destroy(); //we already have ptr stored with Spawner
 		}
@@ -310,7 +310,7 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 			AWeapon* InventoryWeapon = CharInventory->GetWeaponInArray(WeaponTypeIndex);
 			//Check if calibers match
 			//TODO redundant checks
-			if (InventoryWeapon != NULL && 
+			if (InventoryWeapon &&
 				Weapon->WeaponConfig.Caliber == InventoryWeapon->WeaponConfig.Caliber)
 			{
 				int32 CurrentAmmo = CharInventory->GetWeaponInArray(WeaponTypeIndex)->CurrentAmmo;
@@ -321,7 +321,7 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 				{
 					CharInventory->GetWeaponInArray(WeaponTypeIndex)->CurrentAmmo += Weapon->CurrentAmmo;
 					//TODO delete
-					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Added ") + Weapon->CurrentAmmo);
+					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Added " + Weapon->CurrentAmmo));
 				}
 				else //if current ammo is greater than MaxAmmo,
 				{
@@ -331,6 +331,8 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 			}
 
 		}
+		//TODO Delete
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Total Num Weapons: ") + CharInventory->GetNumWeapons());
 	}
 
 	/*
@@ -358,7 +360,7 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 			}
 			Weapon->Destroy(); //already stored in the subcontainer
 		}
-		//if already have that item in subcontainer, 
+		//if already have that item in subcontainer,
 		//so additional pickup merely increases ammo count if there is any
 		else
 		{
@@ -421,17 +423,14 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 
 void ABaseCharacter::NextWeapon()
 {
-	if (CharInventory->GetNumWeapons() > 1)
+
+	int32 CurrentIndex = CurrentWeapon->WeaponConfig.CategoryNum;
+	AWeapon* NewWeapon = CharInventory->GetNextWeaponClass(CurrentIndex);
+	if (NewWeapon && NewWeapon != CurrentWeapon)
 	{
-		AWeapon* NewWeapon = CharInventory->GetNextWeaponClass();
-		if (NewWeapon != NULL)
-		{
-			EquipWeapon(NewWeapon);
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Next Weapon"));
-
-		}
+		EquipWeapon(NewWeapon);
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Next Weapon"));
 	}
-
 
 	/*
 	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
@@ -470,49 +469,46 @@ void ABaseCharacter::NextWeapon()
 	}
 */
 
-	/*
-	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
-	//if CurrentSlot has at least one next slot
-	if (CurrentWeaponSlot < WeaponInventory.Num() - 1)
+/*
+int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
+//if CurrentSlot has at least one next slot
+if (CurrentWeaponSlot < WeaponInventory.Num() - 1)
+{
+	//if next slot is empty or doesn't have a weapon
+	if (WeaponInventory[CurrentWeaponSlot + 1] == NULL)
 	{
-		//if next slot is empty or doesn't have a weapon
-		if (WeaponInventory[CurrentWeaponSlot + 1] == NULL)
+		//Traverse through the entire inventory until find a valid weapon to equip
+		for (int32 i = CurrentWeaponSlot; i < WeaponInventory.Num(); i++)
 		{
-			//Traverse through the entire inventory until find a valid weapon to equip
-			for (int32 i = CurrentWeaponSlot; i < WeaponInventory.Num(); i++)
+			if (WeaponInventory[i] && WeaponInventory[i]->IsA(AWeapon::StaticClass()))
 			{
-				if (WeaponInventory[i] && WeaponInventory[i]->IsA(AWeapon::StaticClass()))
-				{
-					EquipWeapon(WeaponInventory[i]);
-				}
+				EquipWeapon(WeaponInventory[i]);
 			}
-		}
-		else
-		{
-			EquipWeapon(WeaponInventory[CurrentWeaponSlot + 1]);
 		}
 	}
 	else
 	{
-		//Do nothing
-		EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
+		EquipWeapon(WeaponInventory[CurrentWeaponSlot + 1]);
 	}
-	*/
+}
+else
+{
+	//Do nothing
+	EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
+}
+*/
 }
 
 void ABaseCharacter::PrevWeapon()
 {
-	if (CharInventory->GetNumWeapons() > 1)
+	int32 CurrentIndex = CurrentWeapon->WeaponConfig.CategoryNum;
+	AWeapon* NewWeapon = CharInventory->GetPrevWeaponClass(CurrentIndex);
+	if (NewWeapon != NULL && NewWeapon != CurrentWeapon)
 	{
-		AWeapon* NewWeapon = CharInventory->GetPrevWeaponClass();
-		if (NewWeapon != NULL)
-		{
-			EquipWeapon(NewWeapon);
-			//TODO 
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Previous Weapon"));
-		}
+		EquipWeapon(NewWeapon);
+		//TODO 
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Previous Weapon"));
 	}
-
 
 	/*
 	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
@@ -604,6 +600,8 @@ void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 {
 	if (Weapon != NULL)
 	{
+		//TODO Delete
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Equip Weapon"));
 		int32 WeaponTypeIndex = Weapon->WeaponConfig.CategoryNum;
 		if (CurrentWeapon != NULL) //character is wielding a weapon
 		{
