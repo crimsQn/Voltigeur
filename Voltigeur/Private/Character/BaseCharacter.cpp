@@ -321,7 +321,7 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 				{
 					CharInventory->GetWeaponInArray(WeaponTypeIndex)->CurrentAmmo += Weapon->CurrentAmmo;
 					//TODO delete
-					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Added " + Weapon->CurrentAmmo));
+					GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Added " + FString::FromInt(Weapon->CurrentAmmo)));
 				}
 				else //if current ammo is greater than MaxAmmo,
 				{
@@ -332,7 +332,7 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 
 		}
 		//TODO Delete
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Total Num Weapons: ") + CharInventory->GetNumWeapons());
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Total Num Weapons: " + FString::FromInt(CharInventory->GetNumWeapons())));
 	}
 
 	/*

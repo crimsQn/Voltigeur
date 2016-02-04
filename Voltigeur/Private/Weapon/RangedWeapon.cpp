@@ -15,6 +15,7 @@ ARangedWeapon::ARangedWeapon()
 
 void ARangedWeapon::Attack()
 {
+	Super::Attack();
 	if (ProjectileType == EWeaponProjectile::EProjectile)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, TEXT("Projectile"));
@@ -45,5 +46,24 @@ const FHitResult ARangedWeapon::WeaponTrace(const FVector &TraceFrom, const FVec
 
 void ARangedWeapon::ProjectileFire()
 {
+	//calculate ammo
+	if (CurrentAmmo > 0) CurrentAmmo -= WeaponConfig.ShotCost;
+	else ReloadAmmo();
 	//implemented in Appropriate ranged weapon sub-classes
+}
+
+void ARangedWeapon::ReloadAmmo()
+{
+	//if have enough cartridge
+	if (CurrentClip > 0)
+	{
+		//replenish ammo count to full
+		CurrentAmmo = WeaponConfig.MaxAmmo;
+		//decrement clip count
+		CurrentClip--;
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("No Ammo"));
+	}
 }

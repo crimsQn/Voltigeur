@@ -37,6 +37,9 @@ struct FWeaponData
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon General", meta = (AllowPrivateAccess = "true"))
 	float Damage;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon General", meta = (AllowPrivateAccess = "true"))
+	UTexture2D* SplashArt;
+
 	/*********************Ranged Weapon Settings*******************/
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon Ranged", meta = (AllowPrivateAccess = "true"))
 	int32 MaxAmmo;
@@ -74,11 +77,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))
 	FWeaponData WeaponConfig;
 	
-	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))
 		int32 CurrentAmmo; //current count on Ammo
 
-	UPROPERTY(EditDefaultsOnly, Category = Config, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))
 		int32 CurrentClip; //current count on Clip
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = Config, meta = (AllowPrivateAccess = "true"))
+	USoundCue *AttackSound;
+
+	UAudioComponent* PlayWeaponSound(USoundCue *Sound); //triggers when attack with weapon
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
 	class UBoxComponent* CollisionComp; //so that item can be picked by a Character

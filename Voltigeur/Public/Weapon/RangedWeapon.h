@@ -62,6 +62,8 @@ protected:
 
 	/*Direction and point of the bullet impact*/
 	const FHitResult WeaponTrace(const FVector &TraceFrom, const FVector &TraceTo);
+
+	void ReloadAmmo();
 	
 	
 };

@@ -13,6 +13,7 @@ AWeapon::AWeapon()
 
 void AWeapon::Attack()
 {
+	PlayWeaponSound(AttackSound);
 	//implemented in subclasses
 }
 
@@ -52,4 +53,14 @@ void AWeapon::DetachFromPlayer()
 {
 	WeaponMesh->DetachFromParent();
 	WeaponMesh->SetHiddenInGame(true);
+}
+
+UAudioComponent* AWeapon::PlayWeaponSound(USoundCue *Sound)
+{
+	UAudioComponent* AC = NULL;
+	if (Sound && MyPawn)
+	{
+		AC = UGameplayStatics::SpawnSoundAttached(Sound, MyPawn->GetRootComponent());
+	}
+	return AC;
 }

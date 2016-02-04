@@ -33,7 +33,7 @@ void APistol::ProjectileFire()
 		if (Projectile)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Projectile Spawned"));
-			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Rifle Firing"));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Pistol Firing"));
 		}
 	}
 
