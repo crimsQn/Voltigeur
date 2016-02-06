@@ -28,6 +28,7 @@ void ABaseCharacter::BeginPlay()
 	CharInventory = new Inventory();
 	GiveDefaultWeapon();
 
+	IsAiming = false;
 
 	/*Who is making spawn happen*/
 	/*	FActorSpawnParameters SpawnParams;
@@ -62,6 +63,14 @@ void ABaseCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompo
 	/**Weapon Select**/
 	InputComponent->BindAction("NextWeapon", IE_Pressed, this, &ABaseCharacter::NextWeapon);
 	InputComponent->BindAction("PrevWeapon", IE_Pressed, this, &ABaseCharacter::PrevWeapon);
+
+	InputComponent->BindAction("Aim", IE_Pressed, this, &ABaseCharacter::Aim);
+	InputComponent->BindAction("Aim", IE_Released, this, &ABaseCharacter::AimOff);
+
+	/*Jump*/
+	InputComponent->BindAction("Jump", IE_Pressed, this, &ABaseCharacter::Jump);
+
+
 }
 
 void ABaseCharacter::SetupCameraSettings()
@@ -261,7 +270,7 @@ void ABaseCharacter::SetFriendlyState(EFriendlyState NewState)
 	CurrentFriendlyState = NewState;
 }
 
-void ABaseCharacter::SetTarget(ACharacter* const Enemy)
+void ABaseCharacter::SetTarget(ABaseCharacter* Enemy)
 {
 	Target = Enemy;
 }
@@ -269,6 +278,28 @@ void ABaseCharacter::SetTarget(ACharacter* const Enemy)
 void ABaseCharacter::SetInterlocutor(ACharacter* const Interlocutor)
 {
 	this->Interlocutor = Interlocutor;
+}
+
+void ABaseCharacter::InflictDamage(float Damage)
+{
+	//check if damage is greater than remaining health
+	if (Damage >= CharacterData.health)
+	{
+		//Character is dead
+		CharacterData.health = 0;
+		Die();
+	}
+	//else inflict damage and reduce health
+	else
+	{
+		CharacterData.health -= Damage;
+	}
+}
+
+void ABaseCharacter::Die()
+{
+	CharInventory->~Inventory(); //TODO destroy inventory?
+	Destroy();
 }
 
 void ABaseCharacter::OnCollision(AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -665,4 +696,14 @@ void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 		Weapon->OnEquip();
 	}
 	*/
+}
+
+void ABaseCharacter::Aim()
+{
+	IsAiming = true;
+}
+
+void ABaseCharacter::AimOff()
+{
+	IsAiming = false;
 }

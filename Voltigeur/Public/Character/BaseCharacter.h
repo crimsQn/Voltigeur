@@ -71,8 +71,8 @@ public:
 	FORCEINLINE	EFriendlyState GetFriendlyState() const { return CurrentFriendlyState; }
 
 	//Target enemy unit
-	void SetTarget(ACharacter* const Enemy);
-	FORCEINLINE	ACharacter* GetTarget() const { return Target; }
+	void SetTarget(ABaseCharacter* Enemy);
+	FORCEINLINE	ABaseCharacter* GetTarget() const { return Target; }
 
 	//interlocutor is one that this character is interacting with
 	void SetInterlocutor(ACharacter* const character);
@@ -81,6 +81,14 @@ public:
 	//TODO Need to use generic Weapon
 	//Current Weapon
 	FORCEINLINE AWeapon* GetCurrentWeapon() { return CurrentWeapon; }
+
+	FORCEINLINE bool GetIsAiming() { return IsAiming; }
+
+	//inflict damage on this character
+	void InflictDamage(float Damage);
+
+	//Death and destroy
+	void Die();
 
 protected:
 	/*****************Camera Settings*****************/
@@ -127,7 +135,7 @@ protected:
 
 	/*****************Interaction Settings***************/
 	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "false"))
-		ACharacter* Target; //the character that this unit is targeting
+		ABaseCharacter* Target; //the character that this unit is targeting
 
 	UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "false"))
 		ACharacter* Interlocutor; //the character this unit is interacting/talking to
@@ -191,8 +199,12 @@ protected:
 	void EquipWeapon(AWeapon *Weapon);
 
 	void Aim(); //TODO need to implement
+	void AimOff();
 
 
-
-
+	/************************************************************************/
+	/* Animation boolean                                                    */
+	/************************************************************************/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
+	bool IsAiming;
 };

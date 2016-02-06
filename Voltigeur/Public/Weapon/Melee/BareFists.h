@@ -5,6 +5,11 @@
 #include "Weapon/Melee/MeleeWeapon.h"
 #include "BareFists.generated.h"
 
+/************************************************************************/
+/* Forward Declaration                                                  */
+/************************************************************************/
+class ABaseCharacter;
+
 /**
  * 
  */
@@ -16,9 +21,13 @@ class VOLTIGEUR_API ABareFists : public AMeleeWeapon
 public:
 	ABareFists();
 
+	UFUNCTION(BlueprintCallable, Category = "Target")
 	virtual void Attack() override;
 	
 	//int32 Priority;
 
 	//FORCEINLINE int32 GetWeaponPriority() { return WeaponConfig.Priority; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
+	bool IsPunching;
 };
