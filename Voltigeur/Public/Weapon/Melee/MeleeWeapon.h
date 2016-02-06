@@ -26,4 +26,9 @@ class VOLTIGEUR_API AMeleeWeapon : public AWeapon
 
 public:
 	AMeleeWeapon();
+
+	virtual void Attack() override; 
+
+protected:
+
 };

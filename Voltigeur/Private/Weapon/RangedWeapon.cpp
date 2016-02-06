@@ -2,7 +2,7 @@
 
 #include "Voltigeur.h"
 #include "RangedWeapon.h"
-//#include "Projectile.h"
+#include "Projectile.h"
 
 ARangedWeapon::ARangedWeapon()
 {
@@ -50,6 +50,20 @@ void ARangedWeapon::ProjectileFire()
 	if (CurrentAmmo > 0) CurrentAmmo -= WeaponConfig.ShotCost;
 	else ReloadAmmo();
 	//implemented in Appropriate ranged weapon sub-classes
+	if (ProjectileClass != NULL)
+	{
+		FVector MuzzleLoc = WeaponMesh->GetSocketLocation("MuzzleFlashSocket"); //location of socket is on weapon mesh
+		FRotator MuzzleRot = WeaponMesh->GetSocketRotation("MuzzleFlashSocket");
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = Instigator;
+		AProjectile const* Projectile = GetWorld()->SpawnActor<AProjectile>(ProjectileClass, MuzzleLoc, MuzzleRot, SpawnParams);
+		if (Projectile)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Projectile Spawned"));
+			GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Rifle Firing"));
+		}
+	}
 }
 
 void ARangedWeapon::ReloadAmmo()

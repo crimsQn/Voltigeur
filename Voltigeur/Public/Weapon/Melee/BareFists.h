@@ -28,6 +28,5 @@ public:
 
 	//FORCEINLINE int32 GetWeaponPriority() { return WeaponConfig.Priority; }
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
-	bool IsPunching;
+
 };

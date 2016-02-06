@@ -82,7 +82,7 @@ public:
 	//Current Weapon
 	FORCEINLINE AWeapon* GetCurrentWeapon() { return CurrentWeapon; }
 
-	FORCEINLINE bool GetIsAiming() { return IsAiming; }
+	FORCEINLINE bool GetIsAiming() { return Anim_IsAiming; }
 
 	//inflict damage on this character
 	void InflictDamage(float Damage);
@@ -206,5 +206,5 @@ protected:
 	/* Animation boolean                                                    */
 	/************************************************************************/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
-	bool IsAiming;
+	bool Anim_IsAiming;
 };

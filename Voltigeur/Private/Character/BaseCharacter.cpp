@@ -3,7 +3,8 @@
 #include "Voltigeur.h"
 #include "BaseCharacter.h"
 #include "Weapon.h"
-#include "BareFists.h"
+#include "RangedWeapon.h"
+#include "MeleeWeapon.h"
 #include "Engine.h"
 #include "Engine/Blueprint.h"
 #include "Inventory.h"
@@ -28,7 +29,7 @@ void ABaseCharacter::BeginPlay()
 	CharInventory = new Inventory();
 	GiveDefaultWeapon();
 
-	IsAiming = false;
+	Anim_IsAiming = false;
 
 	/*Who is making spawn happen*/
 	/*	FActorSpawnParameters SpawnParams;
@@ -48,6 +49,9 @@ void ABaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	/************************************************************************/
+	/* Animation Checks                                                     */
+	/************************************************************************/
 }
 
 // Called to bind functionality to input
@@ -318,9 +322,6 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 	if (Weapon != NULL)
 	{
 		int32 WeaponTypeIndex = Weapon->WeaponConfig.CategoryNum; //rifle, pistol or melee
-		//TODO input validation for inventory.cpp. Check GetWeaponInArray function
-	//	if (CharInventory->GetWeaponInArray(WeaponTypeIndex) == nullptr)
-		//	return;
 
 		//if this inventory slot is empty
 		if (CharInventory->GetWeaponInArray(WeaponTypeIndex) == NULL)
@@ -331,8 +332,8 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 			{
 				CharInventory->AddWeapon(Spawner);
 				//TODO Delete
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, TEXT("You just picked up a new weapon "
-					+ CharInventory->GetWeaponInArray(WeaponTypeIndex)->WeaponConfig.Name));
+				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Black, TEXT("You just picked up a new weapon ")
+					+ CharInventory->GetWeaponInArray(WeaponTypeIndex)->WeaponConfig.Name);
 			}
 			Weapon->Destroy(); //we already have ptr stored with Spawner
 		}
@@ -365,53 +366,6 @@ void ABaseCharacter::ProcessWeaponPickup(AWeapon* Weapon)
 		//TODO Delete
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Cyan, TEXT("Total Num Weapons: " + FString::FromInt(CharInventory->GetNumWeapons())));
 	}
-
-	/*
-	//Doublylinked list
-	if (Weapon != NULL)
-	{
-		int32 CategoryNum = Weapon->WeaponConfig.CategoryNum;
-		//Pointer to save memory
-		//TArray<AWeapon*>* SubContainer = &WeaponInventory[Priority]; //this is class of weapon
-		TArray<AWeapon*> SubContainer = WeaponInventory[CategoryNum]; //this is class of weapon
-
-
-		int32 NewWeaponIndex = Weapon->WeaponConfig.SerialNum; //Unintialized index of new weapon
-		if (SubContainer.Contains(Weapon))
-		{
-			//Pick up item and stash it in the subcontainer
-			AWeapon* Spawner = GetWorld()->SpawnActor<AWeapon>(Weapon->GetClass());
-			if (Spawner)
-			{
-				//NewWeaponIndex = SubContainer->AddUnique(Spawner); //new weapon added
-				NewWeaponIndex = SubContainer.AddUnique(Spawner); //new weapon added
-				//TODO Delete
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Black, TEXT("Just picked up a ")
-					+ SubContainer[NewWeaponIndex]->WeaponConfig.Name);
-			}
-			Weapon->Destroy(); //already stored in the subcontainer
-		}
-		//if already have that item in subcontainer,
-		//so additional pickup merely increases ammo count if there is any
-		else
-		{
-			int32 CurrentAmmo = SubContainer[NewWeaponIndex]->CurrentAmmo;
-			int32 MaxAmmo = SubContainer[NewWeaponIndex]->WeaponConfig.MaxAmmo;
-
-			//if the current weapon has room to load-up more ammo
-			if (CurrentAmmo >= 0 && Weapon->CurrentAmmo <= (MaxAmmo - CurrentAmmo))
-			{
-				SubContainer[NewWeaponIndex]->CurrentAmmo += Weapon->CurrentAmmo;
-				GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, TEXT("Added ") + Weapon->CurrentAmmo);
-			}
-			else //if Current ammo is greater than MaxAmmo,
-			{
-				//on pickup, character salvage to max Ammo and throws rest away
-				SubContainer[NewWeaponIndex]->CurrentAmmo = MaxAmmo;
-			}
-		}
-	}
-	*/
 
 	/*Array Implementation
 	if (Weapon != NULL)
@@ -462,72 +416,6 @@ void ABaseCharacter::NextWeapon()
 		EquipWeapon(NewWeapon);
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Next Weapon"));
 	}
-
-	/*
-	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
-	//Next weapon is the next weapon type.
-
-	//Check if current index is size of WeaponInventory array. Or next weapon index will exceed array size
-	if (CurrentWeaponTypeIndex == WeaponInventory.Num())
-	{
-		//Select weapon from index 0
-		//Check if next weapon exists, if not then equip fist
-		for (int32 i = 0; i <= CurrentWeaponTypeIndex; i++)
-		{
-			AWeapon* Temp = GrabWeaponFromSubContainer(i);
-			if (Temp) //found valid weapon
-			{
-				EquipWeapon(Temp);
-				//TODO Delete
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Next Weapon"));
-				return;
-			}
-		}
-	}
-	else //for pistol and rifle, if next weapon is empty, then reverts to fist which is always in Melee container
-	{
-		for (int32 i = CurrentWeaponTypeIndex + 1; i < WeaponInventory.Num(); i++)
-		{
-			AWeapon* Temp = GrabWeaponFromSubContainer(i);
-			if (Temp) //found valid weapon
-			{
-				EquipWeapon(Temp);
-				//TODO Delete
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Next Weapon"));
-				return;
-			}
-		}
-	}
-*/
-
-/*
-int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
-//if CurrentSlot has at least one next slot
-if (CurrentWeaponSlot < WeaponInventory.Num() - 1)
-{
-	//if next slot is empty or doesn't have a weapon
-	if (WeaponInventory[CurrentWeaponSlot + 1] == NULL)
-	{
-		//Traverse through the entire inventory until find a valid weapon to equip
-		for (int32 i = CurrentWeaponSlot; i < WeaponInventory.Num(); i++)
-		{
-			if (WeaponInventory[i] && WeaponInventory[i]->IsA(AWeapon::StaticClass()))
-			{
-				EquipWeapon(WeaponInventory[i]);
-			}
-		}
-	}
-	else
-	{
-		EquipWeapon(WeaponInventory[CurrentWeaponSlot + 1]);
-	}
-}
-else
-{
-	//Do nothing
-	EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
-}
-*/
 }
 
 void ABaseCharacter::PrevWeapon()
@@ -540,70 +428,6 @@ void ABaseCharacter::PrevWeapon()
 		//TODO 
 		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Previous Weapon"));
 	}
-
-	/*
-	CurrentWeaponTypeIndex = CurrentWeapon->WeaponConfig.CategoryNum;
-	//Next weapon is the next weapon type.
-
-	//Check if current index is 0. Or prev weapon index will exceed array bounds
-	if (CurrentWeaponTypeIndex == 0)
-	{
-		//Select weapon from index 0
-		//Check if next weapon exists, if not then equip fist.
-		for (int32 i = WeaponInventory.Num(); i > 0; i--)
-		{
-			AWeapon* Temp = GrabWeaponFromSubContainer(i);
-			if (Temp) //found valid weapon
-			{
-				EquipWeapon(Temp);
-				//TODO Delete
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Previous Weapon"));
-				return;
-			}
-		}
-	}
-	else //for pistol and melee
-	{
-		for (int32 i = CurrentWeaponTypeIndex - 1; i > 0; i--)
-		{
-			AWeapon* Temp = GrabWeaponFromSubContainer(i);
-			if (Temp) //found valid weapon
-			{
-				EquipWeapon(Temp);
-				//TODO Delete
-				GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Blue, TEXT("Previous Weapon"));
-				return;
-			}
-		}
-	}
-	*/
-
-	/*
-	int32 CurrentWeaponSlot = CurrentWeapon->WeaponConfig.Priority;
-	if (WeaponInventory[CurrentWeaponSlot]->WeaponConfig.Priority != 0)
-	{
-		//if previous slot is empty
-		if (WeaponInventory[CurrentWeaponSlot - 1] == NULL)
-		{
-			for (int32 i = CurrentWeaponSlot - 1; i >= 0; i--)
-			{
-				if (WeaponInventory[i] && WeaponInventory[i]->IsA(AWeapon::StaticClass()))
-				{
-					EquipWeapon(WeaponInventory[i]);
-				}
-			}
-		}
-		else
-		{
-			EquipWeapon(WeaponInventory[CurrentWeaponSlot - 1]);
-		}
-	}
-	else
-	{
-		//Do nothing
-		EquipWeapon(WeaponInventory[CurrentWeaponSlot]);
-	}
-	*/
 }
 
 /*
@@ -653,57 +477,14 @@ void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 			CurrentWeapon->OnEquip();
 		}
 	}
-
-
-	/*
-	if (CurrentWeapon != NULL)
-	{
-		int32 CurrWeaponTypeNum = CurrentWeapon->WeaponConfig.CategoryNum;
-		int32 CurrWeaponSerialNum = CurrentWeapon->WeaponConfig.SerialNum;
-		TArray<AWeapon*> TempContainer = WeaponInventory[CurrWeaponTypeNum]; //TODO Copying entire ARRAY!!!
-		CurrentWeapon = TempContainer[CurrWeaponSerialNum];  //store current item to container/inventory
-		CurrentWeapon->OnUnequip(); //unequip weapon currently in hand
-		CurrentWeapon = Weapon;
-		Weapon->SetOwningPawn(this); //this specific class owns it
-		Weapon->OnEquip();
-	}
-	else
-	{
-		CurrentWeapon = Weapon;
-		int32 CurrWeaponTypeNum = CurrentWeapon->WeaponConfig.CategoryNum;
-		int32 CurrWeaponSerialNum = CurrentWeapon->WeaponConfig.SerialNum;
-		TArray<AWeapon*> TempContainer = WeaponInventory[CurrWeaponTypeNum]; //TODO Copying entire ARRAY!!!
-		CurrentWeapon = TempContainer[CurrWeaponSerialNum];  //store current item to container/inventory
-		CurrentWeapon->SetOwningPawn(this);
-		Weapon->OnEquip();
-	}
-	*/
-
-	/*
-	if (CurrentWeapon != NULL)
-	{
-		CurrentWeapon = WeaponInventory[CurrentWeapon->WeaponConfig.Priority]; //get item to Current Weapon
-		CurrentWeapon->OnUnequip(); //unequip it
-		CurrentWeapon = Weapon;
-		Weapon->SetOwningPawn(this); //this specific class owns it
-		Weapon->OnEquip();
-	}
-	else
-	{
-		CurrentWeapon = Weapon;
-		CurrentWeapon = WeaponInventory[CurrentWeapon->WeaponConfig.Priority];
-		CurrentWeapon->SetOwningPawn(this);
-		Weapon->OnEquip();
-	}
-	*/
 }
 
 void ABaseCharacter::Aim()
 {
-	IsAiming = true;
+	Anim_IsAiming = true;
 }
 
 void ABaseCharacter::AimOff()
 {
-	IsAiming = false;
+	Anim_IsAiming = false;
 }

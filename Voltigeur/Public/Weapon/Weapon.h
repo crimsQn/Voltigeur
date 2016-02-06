@@ -99,6 +99,12 @@ public:
 	void OnEquip();
 	void OnUnequip();
 
+	/************************************************************************/
+	/* Animation Booleans                                                   */
+	/************************************************************************/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
+		bool Anim_IsAttacking;
+
 protected:
 
 	/*Slide of pistol animation, muzzle, etc... instead of static mesh*/
@@ -106,4 +112,6 @@ protected:
 	class USkeletalMeshComponent* WeaponMesh;
 
 	ABaseCharacter* MyPawn;
+
+
 };

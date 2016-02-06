@@ -117,6 +117,7 @@ void AVoltigeurPlayerController::ProcessSelectedCharacter(FHitResult Hit)
 				if (PlayerChar->GetCurrentWeapon() != NULL)
 				{
 					GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, TEXT("Weapon Fired"));
+					PlayerChar->GetCurrentWeapon()->Anim_IsAttacking = true; //TODO using tick
 					PlayerChar->GetCurrentWeapon()->Attack();
 				}
 				else
