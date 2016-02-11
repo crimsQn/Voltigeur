@@ -75,7 +75,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Character Status")
 		ABaseCharacter* const GetTarget();
 	UFUNCTION(BlueprintCallable, Category = "Character Status")
-	FCharacterData* const GetCharacterData();
+	FCharacterData const GetCharacterData();
 	//FORCEINLINE	ABaseCharacter* GetTarget() const { return Target; }
 
 	//interlocutor is one that this character is interacting with

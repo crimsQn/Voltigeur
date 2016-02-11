@@ -167,7 +167,7 @@ ABaseCharacter* const ABaseCharacter::GetTarget()
 }
 
 /*Blueprint Getter*/
-FCharacterData* const ABaseCharacter::GetCharacterData()
+FCharacterData const ABaseCharacter::GetCharacterData()
 {
 	return CharacterData;
 }
