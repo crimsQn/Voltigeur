@@ -160,6 +160,18 @@ void ABaseCharacter::InitializeInventory()
 	*/
 }
 
+/*Blueprint Getter*/
+ABaseCharacter* const ABaseCharacter::GetTarget()
+{
+	return Target;
+}
+
+/*Blueprint Getter*/
+FCharacterData* const ABaseCharacter::GetCharacterData()
+{
+	return CharacterData;
+}
+
 void ABaseCharacter::GiveDefaultWeapon()
 {
 

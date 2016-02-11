@@ -41,7 +41,7 @@ struct FCharacterData
 {
 	GENERATED_USTRUCT_BODY()
 
-		UPROPERTY(VisibleAnywhere, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Status", meta = (AllowPrivateAccess = "true"))
 		float health; //Character's health
 		//TODO float EyeRange;
 		//TODO implement stat system
@@ -72,7 +72,11 @@ public:
 
 	//Target enemy unit
 	void SetTarget(ABaseCharacter* Enemy);
-	FORCEINLINE	ABaseCharacter* GetTarget() const { return Target; }
+	UFUNCTION(BlueprintCallable, Category = "Character Status")
+		ABaseCharacter* const GetTarget();
+	UFUNCTION(BlueprintCallable, Category = "Character Status")
+	FCharacterData* const GetCharacterData();
+	//FORCEINLINE	ABaseCharacter* GetTarget() const { return Target; }
 
 	//interlocutor is one that this character is interacting with
 	void SetInterlocutor(ACharacter* const character);

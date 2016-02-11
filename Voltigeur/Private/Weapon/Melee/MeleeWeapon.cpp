@@ -30,9 +30,11 @@ void AMeleeWeapon::Attack()
 			FVector PawnLoc = MyPawn->GetActorLocation();
 			if (FVector::Dist(PawnLoc, TargetLoc) <= WeaponConfig.WeaponRange)
 			{
+				/*Execute Animation*/
+				Anim_IsAttacking = true;
+
 				/*inflict damage*/
 				MyPawn->GetTarget()->InflictDamage(WeaponConfig.Damage);
-
 			}
 			else
 			{
